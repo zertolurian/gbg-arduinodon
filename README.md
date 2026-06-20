@@ -3,7 +3,7 @@ An interactive HTML user interface and **Arduino** firmware designed for the 202
 
 🎥 **[Trailer](https://youtu.be/OXWpxESW4e8?si=QSbBM4nZ4uQ_vH3S)**
 
-🚀 **[Launch the Live Web UI](https://your-username.github.io/gbg-arduinodon/)**
+🚀 **[Launch the Live Web UI](https://zertolurian.github.io/gbg-arduinodon/)**
 
 ---
 
