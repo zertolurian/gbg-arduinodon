@@ -64,4 +64,5 @@ Follow these steps to import code from your browser into GBG itself!:
 
 ## 📜 License & Support
 
+**AI Disclosure:** ArduiNodon UI was mostly built using AI.
 This project is open-source and free to use, modify, and share within the Game Builder Garage community. If you run into issues or have ideas for new features, feel free to DM @zertolurian on Discord!
