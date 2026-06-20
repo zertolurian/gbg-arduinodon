@@ -40,9 +40,9 @@ body {
 
 /* ═══ TOP BAR ═══ */
 #topbar {
-  flex-shrink: 0; height: 42px;
-  display: flex; align-items: center; gap: 10px; padding: 0 14px;
-  background: var(--panel); border-bottom: 1px solid var(--border); z-index: 20;
+  flex-shrink: 0; min-height: 42px; height: auto;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 6px 14px;
+  background: var(--panel); border-bottom: 1px solid var(--accent); z-index: 20;
 }
 .top-logo { font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; color:var(--accent); letter-spacing:1px; }
 .top-lbl { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:.5px; }
@@ -52,24 +52,15 @@ body {
   padding:4px 6px; text-align:center; outline:none; -moz-appearance:textfield;
   transition:border-color .12s;
 }
+/* Suppress the OS long-press text-selection callout — drag-to-scrub (added on mobile)
+   would otherwise trigger it, same fix as applied to the sq-del/move/dupe buttons. */
+body.is-touch .top-num { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
 .top-num::-webkit-inner-spin-button,.top-num::-webkit-outer-spin-button{-webkit-appearance:none;}
 .top-num:focus { border-color:var(--accent); }
-.top-name {
-  width:90px; background:#090e1a; border:1px solid var(--border-l); border-radius:3px;
-  color:var(--text); font-family:'Share Tech Mono',monospace; font-size:11px;
-  padding:4px 6px; outline:none; transition:border-color .12s;
-}
-.top-name:focus { border-color:var(--accent); }
 .top-name-btn {
   max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   font-size:11px; font-weight:500; text-align:left; cursor:pointer;
 }
-.top-apply {
-  font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:500; letter-spacing:.5px;
-  background:transparent; border:1px solid var(--border-l); color:var(--accent);
-  padding:4px 10px; border-radius:3px; cursor:pointer; transition:border-color .12s,background .12s;
-}
-.top-apply:hover { border-color:var(--accent); background:rgba(61,114,255,.1); }
 .top-sep  { width:1px; height:18px; background:var(--border); }
 .top-gap  { flex:1; }
 .top-stat { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); }
@@ -78,8 +69,8 @@ body {
   background:transparent; border:1px solid var(--border-l); color:var(--muted);
   padding:5px 11px; border-radius:3px; cursor:pointer; transition:border-color .12s,color .12s;
 }
-.top-btn:hover { border-color:#ef4444; color:#ef4444; }
-.top-zoom { padding:4px 9px; font-size:14px; font-weight:700; line-height:1; }
+.top-btn:hover    { border-color:#ef4444; color:#ef4444; }
+.top-btn:disabled { opacity:.3; cursor:not-allowed; }
 
 /* ═══ MAIN LAYOUT ═══ */
 #main { display:flex; flex:1; overflow:hidden; }
@@ -166,7 +157,11 @@ body {
 /* ═══ CONNECTORS ═══ */
 .port { position:absolute; width:10px; height:10px; border-radius:50%; top:50%; transform:translateY(-50%); z-index:5; cursor:crosshair; transition:transform .1s,box-shadow .1s,background .15s,border-color .15s; background:#1a1a1e; border:1.5px solid #747489; }
 /* top is overridden per-port by inline style when multiple ports exist */
-.port:hover { transform:translateY(-50%) scale(1.6); }
+/* Hover effects only on true-hover devices (mouse). On touch, tapping a port to complete a
+   connection would otherwise leave it stuck in :hover (scaled up) with no way to "un-hover". */
+@media (hover: hover) {
+  .port:hover { transform:translateY(-50%) scale(1.6); }
+}
 .in-port  { left:-5px; }
 .out-port { right:-5px; }
 
@@ -198,17 +193,17 @@ body.linking .obj-wire { pointer-events:none !important; }
 /* Linking from output → pulse inputs, dim other outputs */
 body.linking-out .in-port { animation:ppulse .9s ease-in-out infinite alternate; }
 body.linking-out .out-port { opacity:.25; }
-body.linking-out .out-port.src { opacity:1; transform:translateY(-50%) scale(1.5); box-shadow:0 0 12px rgba(255,60,180,.8); }
+body.linking-out .out-port.src { opacity:1; background:#ff3cb4; border-color:#ff7ad1; animation:ppulse .9s ease-in-out infinite alternate; }
 /* Full target ports should not pulse — grey them out instead */
 body.linking-out .in-port.port-full { animation:none !important; opacity:.2 !important; }
 /* Linking from input → pulse outputs, dim other inputs */
 body.linking-in .out-port { animation:ppulse .9s ease-in-out infinite alternate; }
 body.linking-in .in-port { opacity:.25; }
-body.linking-in .in-port.src { opacity:1; transform:translateY(-50%) scale(1.5); box-shadow:0 0 12px rgba(255,60,180,.8); }
+body.linking-in .in-port.src { opacity:1; background:#ff3cb4; border-color:#ff7ad1; animation:ppulse .9s ease-in-out infinite alternate; }
 body.linking-in .out-port.port-full { animation:none !important; opacity:.2 !important; }
 /* All ports on the source tile are disabled during linking */
-body.linking .linking-src .port,
-body.linking .linking-src .obj-port { opacity:.12 !important; pointer-events:none !important; animation:none !important; }
+body.linking .linking-src .port:not(.src),
+body.linking .linking-src .obj-port:not(.src) { opacity:.12 !important; pointer-events:none !important; animation:none !important; }
 @keyframes ppulse {
   from { box-shadow:0 0 4px rgba(255,60,180,.7); transform:translateY(-50%) scale(1.2); }
   to   { box-shadow:0 0 14px rgba(255,60,180,.9),0 0 26px rgba(255,60,180,.35); transform:translateY(-50%) scale(1.45); }
@@ -220,7 +215,9 @@ body.linking .linking-src .obj-port { opacity:.12 !important; pointer-events:non
   background:#3a1809; border:1.5px solid #993c22;
   transition:transform .1s,box-shadow .1s,background .15s,border-color .15s;
 }
-.obj-port:hover { transform:scale(1.6); }
+@media (hover: hover) {
+  .obj-port:hover { transform:scale(1.6); }
+}
 .obj-top-port { top:-5px; left:3px; }
 .obj-bot-port { bottom:-5px; left:3px; }
 .obj-port.connected { background:#1d4ed8; border-color:#60a5fa; }
@@ -233,10 +230,10 @@ body.linking-top .obj-bot-port.port-full { animation:none !important; opacity:.2
 /* Linking from bottom → pulse top ports; linking from top → pulse bottom ports */
 body.linking-bot .obj-top-port { animation:ppulse-obj .9s ease-in-out infinite alternate; }
 body.linking-bot .obj-bot-port { opacity:.25; }
-body.linking-bot .obj-bot-port.src { opacity:1; transform:scale(1.5); box-shadow:0 0 12px rgba(59,130,246,.8); }
+body.linking-bot .obj-bot-port.src { opacity:1; background:#3b82f6; border-color:#93c5fd; animation:ppulse-obj .9s ease-in-out infinite alternate; }
 body.linking-top .obj-bot-port { animation:ppulse-obj .9s ease-in-out infinite alternate; }
 body.linking-top .obj-top-port { opacity:.25; }
-body.linking-top .obj-top-port.src { opacity:1; transform:scale(1.5); box-shadow:0 0 12px rgba(59,130,246,.8); }
+body.linking-top .obj-top-port.src { opacity:1; background:#3b82f6; border-color:#93c5fd; animation:ppulse-obj .9s ease-in-out infinite alternate; }
 /* Cross-dim: signal ports during obj linking, obj ports during signal linking */
 body.linking-bot .in-port, body.linking-bot .out-port,
 body.linking-top .in-port, body.linking-top .out-port { opacity:.1; pointer-events:none !important; }
@@ -267,13 +264,22 @@ body.sim-mode .wire.sim-hi-wire.wire-sel { stroke-width:7.5 !important; }
 @keyframes draw-in { to { stroke-dashoffset:0; } }
 
 /* ═══ SIDEBAR ═══ */
-#sidebar { width:var(--sb-w); flex-shrink:0; background:var(--panel); border-left:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+#sidebar { width:var(--sb-w); flex-shrink:0; background:var(--panel); border-left:1px solid var(--accent); display:flex; flex-direction:column; overflow:hidden; transition:width .2s ease; }
 #sb-empty {
   flex:1; display:flex; flex-direction:column; overflow-y:auto;
   color:var(--muted);
 }
 #sb-empty::-webkit-scrollbar { width:4px; }
 #sb-empty::-webkit-scrollbar-thumb { background:var(--border-l); border-radius:2px; }
+/* Mobile-specific Controls panel: same show/hide conditions as #sb-empty, just is-touch-gated.
+   The desktop panel is force-hidden on touch devices, and vice versa. */
+body.is-touch #sb-empty { display:none !important; }
+#sb-empty-mobile { display:none; flex-direction:column; overflow-y:auto; color:var(--muted); }
+#sb-empty-mobile::-webkit-scrollbar { width:4px; }
+#sb-empty-mobile::-webkit-scrollbar-thumb { background:var(--border-l); border-radius:2px; }
+body.is-touch #sb-empty-mobile { display:flex; flex:1; }
+body.is-touch #sidebar.active #sb-empty-mobile       { display:none; }
+body.is-touch #sidebar.multi-active #sb-empty-mobile { display:none; }
 .sb-info { padding:11px 13px; display:flex; flex-direction:column; gap:9px; }
 .sb-info-title {
   font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:1.5px;
@@ -299,7 +305,6 @@ body.sim-mode .wire.sim-hi-wire.wire-sel { stroke-width:7.5 !important; }
   font-family:'Share Tech Mono',monospace; font-size:10.5px; color:var(--accent);
   flex-shrink:0; opacity:.9;
 }
-.top-btn:disabled { opacity:.3; cursor:not-allowed; }
 #sb-body { display:none; flex-direction:column; flex:1; overflow:hidden; }
 #sidebar.active #sb-empty { display:none; }
 #sidebar.active #sb-body  { display:flex; }
@@ -349,7 +354,7 @@ select.prop-in option { background:#090e1a; color:var(--text); }
 .sb-btn.danger:hover { border-color:#ef4444; color:#ef4444; }
 
 /* ═══ STATUS BAR ═══ */
-#statusbar { flex-shrink:0; height:26px; display:flex; align-items:center; gap:8px; padding:0 14px; background:var(--panel); border-top:1px solid var(--border); font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:.3px; }
+#statusbar { flex-shrink:0; height:26px; display:flex; align-items:center; gap:8px; padding:0 14px; background:var(--panel); border-top:1px solid var(--accent); font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:.3px; }
 .st-dot { width:6px; height:6px; border-radius:50%; background:#22c55e; flex-shrink:0; transition:background .2s; }
 .st-dot.live { background:var(--out-col); animation:blink .75s step-start infinite; }
 @keyframes blink { 50%{opacity:.25;} }
@@ -419,9 +424,13 @@ select.prop-in option { background:#090e1a; color:var(--text); }
   color:#fff; font-size:9px; line-height:1; padding:0;
   display:none; align-items:center; justify-content:center;
   cursor:pointer; z-index:10; transition:background .1s,transform .1s;
+  user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
 }
 .sq.selected.has-type ~ .sq-del { display:flex; }
-.sq-del:hover { background:#ef4444; transform:scale(1.18); }
+/* Hover effects only on true-hover devices (mouse). Touch devices never see these rules. */
+@media (hover: hover) {
+  .sq-del:hover { background:#ef4444; transform:scale(1.18); }
+}
 
 /* ─── Duplicate button ─── */
 .sq-dupe {
@@ -431,9 +440,12 @@ select.prop-in option { background:#090e1a; color:var(--text); }
   color:#fff; font-size:9px; font-weight:400; line-height:1; padding:0;
   display:none; align-items:center; justify-content:center; padding-top:2px;
   cursor:pointer; z-index:10; transition:background .1s,transform .1s;
+  user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
 }
 .sq.selected.has-type ~ .sq-dupe { display:flex; }
-.sq-dupe:hover { background:#22c55e; transform:translateX(-50%) scale(1.18); }
+@media (hover: hover) {
+  .sq-dupe:hover { background:#22c55e; transform:translateX(-50%) scale(1.18); }
+}
 
 /* ─── Move button ─── */
 .sq-move {
@@ -442,9 +454,16 @@ select.prop-in option { background:#090e1a; color:var(--text); }
   color:#fff; font-size:12px; line-height:1; padding:0;
   display:none; align-items:center; justify-content:center; padding-bottom:2px;
   cursor:pointer; z-index:10; transition:background .1s,transform .1s;
+  user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
 }
 .sq.selected.has-type ~ .sq-move { display:flex; }
-.sq-move:hover { background:#3b82f6; transform:scale(1.18); }
+@media (hover: hover) {
+  .sq-move:hover { background:#3b82f6; transform:scale(1.18); }
+}
+/* On touch: no animation on these buttons at all (prevents any flash on tap) */
+body.is-touch .sq-del,
+body.is-touch .sq-dupe,
+body.is-touch .sq-move { transition: none !important; }
 
 /* ─── Move mode ─── */
 body.moving-mode .sq:not(.has-type) { border-color:rgba(59,130,246,.4) !important; background:rgba(37,99,235,.05) !important; cursor:crosshair; }
@@ -559,7 +578,7 @@ body.duping-mode .sq.disabled {
 }
 /* ─── Auto-grow comment textarea ─── */
 #p-comment {
-  resize:none; overflow:hidden; min-height:54px; line-height:1.5;
+  resize:none; overflow:hidden; min-height:28px; line-height:1.5;
   font-family:'Share Tech Mono',monospace; font-size:11px;
 }
 #nodon-browser { margin-top:6px; }
@@ -689,8 +708,115 @@ body.del-mode-on .wire, body.del-mode-on .obj-wire { cursor:crosshair !important
   box-shadow:0 0 0 2px #ef4444 !important;
 }
 
-/* ═══ SIMULATION MODE ═══ */
-body.sim-mode .sq-params    { display:none; }
+/* ════════════════════════════════════════════════════════════════════════
+   MOBILE  (body.is-touch — added by JS on first touchstart)
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Topbar: multi-row flex-wrap layout ── */
+body.is-touch #topbar {
+  height: auto; min-height: 42px;
+  flex-wrap: wrap; padding: 4px 10px; gap: 6px;
+  justify-content: center;
+}
+body.is-touch .top-gap { display: none; }
+
+/* ── Row-break divs: invisible on desktop, force new rows on mobile ── */
+.tb-row-break { display: none; }
+body.is-touch .tb-row-break          { display: block; width: 100%; height: 0; }
+body.is-touch.sim-mode    .bm-break  { display: none; }
+body.is-touch:not(.sim-mode) .sm-break { display: none; }
+body.is-touch .row1-sep { border-bottom: 1px solid var(--border-l); }
+/* Suppress selection glows and action buttons during a long-press countdown */
+body.lp-pending .sq         { animation: none !important; }
+body.lp-pending .sq-del,
+body.lp-pending .sq-move,
+body.lp-pending .sq-dupe    { display: none !important; }
+/* Also freeze wires so they can't be hovered during the countdown */
+body.lp-pending .wire,
+body.lp-pending .obj-wire   { pointer-events: none !important; }
+/* Prevent iOS/Android blue tap flash on all touch elements */
+body.is-touch * { -webkit-tap-highlight-color: transparent; }
+
+/* ── display:contents wrappers: transparent on desktop, flex units on mobile ── */
+.top-logo-group { display: contents; }
+body.is-touch .top-logo-group { display: flex; align-items: center; gap: 6px; }
+.tb-logo-spacer { display: none; }        /* never shown (sandwich layout removed) */
+.tb-logo-right  { display: contents; }
+body.is-touch .tb-logo-right { display: flex; align-items: center; gap: 6px; }
+.top-unit { display: contents; }
+body.is-touch .top-unit { display: flex; align-items: center; gap: 6px; }
+.tb-row-centered { display: contents; }   /* transparent on all devices */
+
+/* ── Sim-mode visibility: some mobile-only, one device-agnostic ── */
+body.is-touch.sim-mode #tb-size-unit    { display: none; }  /* empty flex item → phantom gap */
+body.is-touch.sim-mode #layout-name-btn { display: none; }
+body.is-touch.sim-mode #tb-lbl-title    { display: none; }
+body.sim-mode          #tb-sep-name-export { display: none; } /* build-mode sep only */
+#tb-sep-sf-title { display: none; }   /* experimental sep; permanently disabled */
+/* Zoom controls: removed from the mobile header entirely (both modes) — pinch-to-zoom
+   on the grid covers this on touch devices, so the header buttons are redundant there. */
+body.is-touch #tb-sep-zoom  { display: none; }
+body.is-touch #tb-zoom-unit { display: none; }
+
+/* ── Edge separators: hide seps at start/end of a flex row ── */
+body.is-touch:not(.sim-mode) .bm-start              { display: none; }
+body.is-touch:not(.sim-mode) .top-sep:has(+ .bm-break) { display: none; }
+body.is-touch.sim-mode       .sm-start               { display: none; }
+body.is-touch.sim-mode       .top-sep:has(+ .sm-break) { display: none; }
+
+/* ── Mode/View button text: hide " Mode"/" View" suffix; seps; appearance ── */
+.desk-text { display: inline; }
+body.is-touch #tb-sep-simmode   { display: none; }   /* left-of-mode sep */
+body.is-touch #tb-sep-buildmode { display: none; }   /* inter-mode sep */
+#tb-sep-mode-r { display: none; }                    /* right-of-mode: mobile-only */
+body.is-touch #tb-sep-mode-r { display: block; }
+/* mt-hover was visibility:hidden (took layout space → unequal button widths); use display:none */
+body.is-touch .mt-inner .mt-hover { display: none; }
+body.is-touch .mode-toggle { font-size: 13px !important; font-weight: 600 !important; }
+body.is-touch #topbar button { display: inline-flex; align-items: center; justify-content: center; }
+
+/* ── Disable hover states on touch (also guards before is-touch is set) ── */
+@media (hover: none) {
+  .top-btn:hover                          { border-color: var(--border-l) !important; color: var(--muted) !important; }
+  .mode-toggle:hover .mt-inner .mt-normal { visibility: visible !important; }
+  .mode-toggle:hover .mt-inner .mt-hover  { visibility: hidden  !important; }
+  #sim-subframe-btn:hover                 { color: #ed62f8 !important; border-color: #a21caf !important; background: transparent !important; }
+  #sim-subframe-btn.sim-btn-active:hover  { color: #a855f7 !important; border-color: #7c3aed !important; background: rgba(168,85,247,.06) !important; }
+  #mob-sidebar-tab:hover                  { background: rgba(61,114,255,.12) !important; }
+  /* Wires: never change stroke on touch (hover state sticks after tap) */
+  .wire:hover     { stroke: var(--wire-col) !important; stroke-width: 3 !important; }
+  .obj-wire:hover { stroke: rgba(59,130,246,.7) !important; stroke-width: 2 !important; }
+}
+
+/* ── Peek tab: always-visible strip on the sidebar edge (both platforms) ── */
+#mob-sidebar-tab {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; flex-shrink: 0;
+  background: rgba(61,114,255,.12);
+  border-left: 1.5px solid var(--accent);
+  color: var(--accent); font-size: 15px; font-weight: bold;
+  cursor: pointer; user-select: none;
+}
+
+/* ── Sidebar: collapses to zero width; expands when mob-open (mobile, auto-toggled) ── */
+body.is-touch #sidebar {
+  width: 0; overflow: hidden; flex-shrink: 0;
+  transition: width .2s ease;
+  border-left: none;
+}
+body.is-touch #sidebar.mob-open {
+  width: var(--sb-w);
+  border-left: 1px solid var(--accent);
+}
+/* Desktop: starts expanded; collapses only on an explicit peek-tab click (manual only) */
+body:not(.is-touch) #sidebar.sidebar-collapsed {
+  width: 0; overflow: hidden; border-left: none;
+}
+
+/* Keep the configured params visible during simulation, but very faint — the live sim-overlay
+   values (position:absolute, painted above normal-flow content by default) sit on top of them,
+   letting the configured value and the live value be compared at a glance. */
+body.sim-mode .sq-params    { opacity: .16; }
 /* In sim mode: wires carry no hit-test targets — prevent any click from reaching selectWire */
 body.sim-mode .wire,
 body.sim-mode .obj-wire { pointer-events:none !important; }
@@ -703,6 +829,7 @@ body.sim-mode .obj-port     { display:none !important; }
 /* Sidebar in sim mode: visible for the info panel; hides build-mode panels */
 body.sim-mode #sidebar      { display:flex; }
 body.sim-mode #sb-empty     { display:none !important; }
+body.sim-mode #sb-empty-mobile { display:none !important; }
 /* Sim-mode info panel (shown when no nodon is selected) */
 #sim-empty {
   display:none; flex:1; flex-direction:column; overflow-y:auto; color:var(--muted);
@@ -711,6 +838,12 @@ body.sim-mode #sb-empty     { display:none !important; }
 #sim-empty::-webkit-scrollbar-thumb { background:var(--border-l); border-radius:2px; }
 body.sim-mode #sim-empty            { display:flex; }
 body.sim-mode #sidebar.active #sim-empty { display:none; }
+body.is-touch.sim-mode #sim-empty { display:none !important; }
+#sim-empty-mobile { display:none; flex-direction:column; overflow-y:auto; color:var(--muted); }
+#sim-empty-mobile::-webkit-scrollbar { width:4px; }
+#sim-empty-mobile::-webkit-scrollbar-thumb { background:var(--border-l); border-radius:2px; }
+body.is-touch.sim-mode #sim-empty-mobile { display:flex; flex:1; }
+body.is-touch.sim-mode #sidebar.active #sim-empty-mobile { display:none; }
 body.sim-mode .sq           { cursor:default !important; }
 body.sim-mode .sq.sim-touchable { cursor:pointer !important; }
 
@@ -725,7 +858,7 @@ body.sim-mode .sq.sim-touchable { cursor:pointer !important; }
   display:none; flex-direction:column; flex:1; min-height:0; overflow:hidden;
 }
 #sim-panel-scroll { flex:1; overflow-y:auto; min-height:0; padding-bottom:8px; }
-#sim-panel-footer { padding:12px 14px; border-top:1px solid var(--border); flex-shrink:0; }
+#sim-panel-footer { padding:12px 14px; border-top:1px solid var(--border); flex-shrink:0; display:flex; }
 .sim-sb-section { padding:12px 15px; border-bottom:1px solid var(--border); }
 .sim-sb-sec-title {
   font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:1.2px;
@@ -787,11 +920,11 @@ body.sim-mode .sq.has-type .sim-overlay { display:flex; }
 #build-mode-btn { color:#fb923c !important; border-color:#c2410c !important; }
 #build-mode-btn:hover { color:#22d3ee !important; border-color:#0e7490 !important; background:rgba(34,211,238,.08) !important; }
 /* Mode-toggle: grid trick locks button width; flex centres hover text */
-.mode-toggle { display:inline-flex; justify-content:center; align-items:center; }
+.mode-toggle { display:inline-flex; justify-content:center; align-items:center; height:27px; }
 .mt-inner { display:inline-grid; align-items:center; justify-items:center; }
 .mt-inner .mt-normal,
 .mt-inner .mt-hover,
-.mt-inner .mt-phantom { grid-area:1/1; white-space:nowrap; }
+.mt-inner .mt-phantom { grid-area:1/1; white-space:nowrap; line-height:1; }
 .mt-inner .mt-phantom { visibility:hidden; pointer-events:none; }
 .mt-inner .mt-hover   { visibility:hidden; }
 .mode-toggle:hover .mt-inner .mt-normal { visibility:hidden; }
@@ -920,7 +1053,7 @@ body.sim-mode #import-btn { display:none !important; }
 .sim-btn-active { color:#a855f7 !important; border-color:#7c3aed !important; background:rgba(168,85,247,.06) !important; }
 /* (speed display and old step-back/fwd buttons removed — handled by new layout) */
 #sim-controls {
-  display:none; align-items:center; gap:8px;
+  display:none; /* shown as display:contents in sim mode via JS */
 }
 
 /* Compact two-line display for dual-output nodons (e.g. Angle to Position) */
@@ -934,66 +1067,98 @@ body.sim-mode #import-btn { display:none !important; }
 <body>
 
 <div id="topbar">
-  <span class="top-logo" id="app-logo" title="View Changelog" style="cursor:pointer"><span style="color:#007582">Ardui</span><span style="color:#D4C400">Nodon</span> UI<span style="font-size:0.55em;color:#888;font-weight:400;letter-spacing:.04em;margin-left:4px;vertical-align:middle">v1.1</span></span>
-  <!-- Build Mode button: LEFT of COLS, hidden in sim mode (BUILD_ONLY_IDS) -->
+<div class="tb-row-centered" id="tb-top-row">
+<div class="top-logo-group">
+  <div class="tb-logo-spacer"></div>
+  <span class="top-logo" id="app-logo" title="View Changelog" style="cursor:pointer"><span style="color:#007582">Ardui</span><span style="color:#D4C400">Nodon</span> UI</span>
+  <div class="tb-logo-right">
+    <span id="app-ver" style="font-size:0.55em;color:#888;font-weight:400;letter-spacing:.04em;vertical-align:middle">v1.2</span>
+    <button id="lang-btn" class="top-btn" style="font-size:10px;padding:2px 7px;min-width:28px" title="Switch language / 言語切替" disabled>EN</button>
+  </div>
+</div>
+<div class="tb-row-break bm-break row1-sep"></div>
+<div class="tb-row-break sm-break row1-sep"></div>
   <div class="top-sep" id="tb-sep-simmode"></div>
-  <button class="top-btn mode-toggle" id="sim-mode-btn"><span class="mt-inner"><span class="mt-phantom" aria-hidden="true">Simulate Mode</span><span class="mt-normal">Build Mode</span><span class="mt-hover">→ Simulate</span></span></button>
-  <!-- Grid size: hidden in sim mode -->
-  <div class="top-sep" id="tb-sep-cols"></div>
-  <span class="top-lbl" id="tb-lbl-cols">SIZE</span>
-  <input class="top-num" type="number" id="ctrl-cols" min="1" max="19" value="19">
-  <span class="top-lbl" style="margin:0 1px" id="tb-lbl-x">×</span>
-  <input class="top-num" type="number" id="ctrl-rows" min="1" max="11" value="11">
-  <!-- Sim Mode button: LEFT of Zoom, hidden in build mode (shown by enterSimMode) -->
+  <button class="top-btn mode-toggle" id="sim-mode-btn"><span class="mt-inner"><span class="mt-phantom" aria-hidden="true">Simulate<span class="desk-text"> Mode</span></span><span class="mt-normal">Build<span class="desk-text"> Mode</span></span><span class="mt-hover">→ Simulate</span></span></button>
+  <!-- Sim Mode button: hidden in build mode (shown by enterSimMode) -->
   <div class="top-sep" id="tb-sep-buildmode" style="display:none"></div>
-  <button class="top-btn mode-toggle" id="build-mode-btn" style="display:none"><span class="mt-inner"><span class="mt-phantom" aria-hidden="true">Simulate Mode</span><span class="mt-normal">Simulate Mode</span><span class="mt-hover">← Build</span></span></button>
-  <!-- Normal/Subframe View button: shown in sim mode, RIGHT of build-mode-btn -->
-  <div class="top-sep" id="tb-sep-viewmode" style="display:none"></div>
-  <button class="top-btn mode-toggle" id="sim-subframe-btn" style="display:none"><span class="mt-inner"><span class="mt-phantom" aria-hidden="true">Subframe View</span><span class="mt-normal">Normal View</span><span class="mt-hover">→ Subframe</span></span></button>
+  <button class="top-btn mode-toggle" id="build-mode-btn" style="display:none"><span class="mt-inner"><span class="mt-phantom" aria-hidden="true">Simulate<span class="desk-text"> Mode</span></span><span class="mt-normal">Simulate<span class="desk-text"> Mode</span></span><span class="mt-hover">← Build</span></span></button>
+  <div class="top-sep" id="tb-sep-mode-r"></div>
+</div>
+<!-- Grid size: hidden in sim mode -->
+<div class="top-sep bm-start" id="tb-sep-cols"></div>
+  <div class="top-unit" id="tb-size-unit">
+    <span class="top-lbl" id="tb-lbl-cols">SIZE</span>
+    <input class="top-num" type="number" id="ctrl-cols" min="1" max="19" value="19">
+    <span class="top-lbl" style="margin:0 1px" id="tb-lbl-x">×</span>
+    <input class="top-num" type="number" id="ctrl-rows" min="1" max="11" value="11">
+  </div>
+  <!-- Normal/Subframe View button: shown in sim mode -->
+  <div class="top-sep sm-start" id="tb-sep-viewmode" style="display:none"></div>
+  <button class="top-btn mode-toggle" id="sim-subframe-btn" style="display:none"><span class="mt-inner"><span class="mt-phantom" aria-hidden="true">Subframe<span class="desk-text"> View</span></span><span class="mt-normal" data-i18n="ui.btn.subframe.normal">Normal View</span><span class="mt-hover" data-i18n="ui.btn.subframe.hover">→ Subframe</span></span></button>
   <!-- Zoom: visible in both modes -->
   <div class="top-sep" id="tb-sep-zoom"></div>
-  <span class="top-lbl">ZOOM</span>
-  <button class="top-btn top-zoom" id="zoom-out-btn">−</button>
-  <button class="top-btn top-zoom" id="zoom-in-btn">+</button>
+  <div class="top-unit" id="tb-zoom-unit">
+    <span class="top-lbl">ZOOM</span>
+    <input type="number" id="zoom-input" class="top-num" min="0.2" max="2.5" step="0.1" value="1">
+  </div>
   <!-- Undo/Redo: hidden in sim mode -->
-  <div class="top-sep" id="tb-sep-undo"></div>
-  <button class="top-btn" id="undo-btn" title="Undo (Z)" disabled>↩ Undo</button>
-  <button class="top-btn" id="redo-btn" title="Redo (R)" disabled>↪ Redo</button>
+  <div class="tb-row-break bm-break"></div>
+  <div class="top-sep bm-start" id="tb-sep-undo"></div>
+  <button class="top-btn" id="undo-btn" title="Undo (Z)" data-i18n="ui.undo" data-i18n-title="ui.undo.title" disabled>↩ Undo</button>
+  <button class="top-btn" id="redo-btn" title="Redo (R)" data-i18n="ui.redo" disabled>↪ Redo</button>
   <!-- Multi-select: hidden in sim mode -->
   <div class="top-sep" id="tb-sep-multi"></div>
-  <button class="top-btn" id="multisel-btn">Multi-select</button>
-  <button class="top-btn" id="del-mode-btn" title="Delete Mode (Del/Bksp)">Delete</button>
+  <button class="top-btn" id="multisel-btn" data-i18n="ui.multisel">Multi-select</button>
+  <button class="top-btn" id="del-mode-btn" title="Delete Mode (Del/Bksp)" data-i18n="ui.deleteMode">Delete</button>
   <!-- Simulation-mode-only controls (hidden in build mode) -->
   <div id="sim-controls">
     <div class="top-sep"></div>
+    <div class="tb-row-break sm-break"></div>
     <span class="top-lbl">SPEED</span>
     <input type="number" id="sim-speed-input" class="top-num" min="0" max="100" step="0.1" value="1">
     <div class="top-sep"></div>
-    <button id="sim-start-btn"><span class="btn-lock-inner"><span class="btn-lock-sizer" aria-hidden="true">▶ Start</span><span class="btn-lock-lbl">▶ Start</span></span></button>
-    <button id="sim-pause-btn" disabled><span class="btn-lock-inner"><span class="btn-lock-sizer" aria-hidden="true">▶ Resume</span><span class="btn-lock-lbl">|| Pause</span></span></button>
+    <button id="sim-start-btn"><span class="btn-lock-inner"><span class="btn-lock-sizer" aria-hidden="true" data-i18n="ui.simStart">▶ Start</span><span class="btn-lock-lbl" id="sim-start-lbl" data-i18n="ui.simStart">▶ Start</span></span></button>
+    <button id="sim-pause-btn" disabled><span class="btn-lock-inner"><span class="btn-lock-sizer" aria-hidden="true" data-i18n="ui.simResume">▶ Resume</span><span class="btn-lock-lbl" id="sim-pause-lbl" data-i18n="ui.simPause">|| Pause</span></span></button>
     <div class="top-sep"></div>
+    <div class="tb-row-break sm-break"></div>
     <span class="sim-time-part" id="sim-time-t">t = 0.00s</span>
     <div class="top-sep"></div>
-    <span class="sim-time-part" id="sim-time-f">f = 0</span>
-    <button class="sim-step-sm" id="sim-frame-back" disabled>−</button>
-    <button class="sim-step-sm" id="sim-frame-fwd"  disabled>+</button>
+    <div class="top-unit">
+      <span class="sim-time-part" id="sim-time-f">f = 0</span>
+      <button class="sim-step-sm" id="sim-frame-back" disabled>−</button>
+      <button class="sim-step-sm" id="sim-frame-fwd"  disabled>+</button>
+    </div>
     <div class="top-sep"></div>
-    <span class="sim-time-part" id="sim-time-sf">sf = 0</span>
-    <button class="sim-step-sm" id="sim-sf-back" disabled>−</button>
-    <button class="sim-step-sm" id="sim-sf-fwd"  disabled>+</button>
+    <div class="top-unit">
+      <span class="sim-time-part" id="sim-time-sf">sf = 0</span>
+      <button class="sim-step-sm" id="sim-sf-back" disabled>−</button>
+      <button class="sim-step-sm" id="sim-sf-fwd"  disabled>+</button>
+    </div>
   </div>
   <div class="top-gap"></div>
-  <span class="top-lbl" id="tb-lbl-title">TITLE</span>
-  <button class="top-name-btn top-btn" id="layout-name-btn" title="Click to edit title and description">Untitled</button>
+  <div class="tb-row-break bm-break"></div>
+  <div class="top-sep" id="tb-sep-sf-title"></div>
+  <div class="top-unit">
+    <span class="top-lbl" id="tb-lbl-title">TITLE</span>
+    <button class="top-name-btn top-btn" id="layout-name-btn" title="Click to edit title and description">Untitled</button>
+  </div>
   <input type="hidden" id="layout-name" value="Untitled">
-  <button class="top-btn" id="export-btn">Export</button>
-  <button class="top-btn" id="import-btn">Import</button>
+  <div class="top-sep" id="tb-sep-name-export"></div>
+  <button class="top-btn" id="export-btn" data-i18n="ui.export">Export</button>
+  <button class="top-btn" id="import-btn" data-i18n="ui.import">Import</button>
   <div class="top-sep" id="tb-sep-nc"></div>
-  <span class="top-stat" id="nodon-count">0 nodons</span>
-  <div class="top-sep" id="tb-sep-wc"></div>
-  <span class="top-stat" id="wire-count">0 connections</span>
+  <div class="tb-row-break bm-break"></div>
+  <div class="tb-row-centered" id="tb-counter-row">
+    <span class="top-stat" id="nodon-count">0 nodons</span>
+    <div class="top-sep" id="tb-sep-wc"></div>
+    <span class="top-stat" id="wire-count">0 connections</span>
+  </div>
   <div class="top-sep" id="tb-sep-sftotal" style="display:none"></div>
-  <span class="top-stat" id="sim-sf-total" style="display:none">0 subframes elapsed</span>
+  <div class="tb-row-break sm-break"></div>
+  <div class="tb-row-centered" id="tb-elapsed-row">
+    <span class="top-stat" id="sim-sf-total" style="display:none">0 subframes elapsed</span>
+  </div>
 </div>
 
 <div id="main">
@@ -1001,69 +1166,69 @@ body.sim-mode #import-btn { display:none !important; }
     <div id="gc">
       <div id="grid"></div>
       <svg id="wires"></svg>
-      <div id="wire-del-btn" title="Delete connection">✕</div>
+      <div id="wire-del-btn" data-i18n-title="ui.wireDelTitle" title="Delete connection">✕</div>
     </div>
   </div>
-
+  <div id="mob-sidebar-tab">❮</div>
   <div id="sidebar">
     <div id="sb-empty">
       <div class="sb-info">
-        <div class="sb-info-title">INFO</div>
+        <div class="sb-info-title" data-i18n="ui.info.title">INFO</div>
         <div class="sb-info-desc"><strong>ArduiNodon UI</strong> is a visual editor emulating <strong>Game Builder Garage</strong>, built for the <strong>ArduiNodon</strong> Arduino script. Place and connect Nodons just like in GBG, and then Export to share with others or paste into the <strong>ArduiNodon</strong> script to recreate all the Nodons and connections within GBG.</div>
 
         <hr class="sb-info-hr">
-        <div class="sb-info-bm-header">Build Mode Controls</div>
+        <div class="sb-info-bm-header" data-i18n="ui.info.bm.header">Build Mode Controls</div>
 
         <div class="sb-info-section">
-          <div class="sb-info-section-hd">Header</div>
+          <div class="sb-info-section-hd" data-i18n="ui.info.sec.header">Header</div>
           <div class="sb-info-row"><span class="sb-info-key">Mode</span>Switch to Simulate Mode</div>
           <div class="sb-info-row"><span class="sb-info-key">Size</span>Edit or scroll to adjust grid dimensions (max 19×11)</div>
-          <div class="sb-info-row"><span class="sb-info-key">Zoom ±</span>Adjust grid zoom</div>
+          <div class="sb-info-row"><span class="sb-info-key">Zoom</span>Edit or scroll to adjust grid zoom</div>
           <div class="sb-info-row"><span class="sb-info-key">Undo / Redo</span>Step backward or forward through edits</div>
-          <div class="sb-info-row"><span class="sb-info-key">Multi-select</span>Enter freeform multi-select mode</div>
-          <div class="sb-info-row"><span class="sb-info-key">Delete</span>Enter freeform delete mode</div>
+          <div class="sb-info-row"><span class="sb-info-key">Multi-select</span>Enter freeform draw-to-select mode</div>
+          <div class="sb-info-row"><span class="sb-info-key">Delete</span>Enter freeform draw-to-delete (or cut) mode</div>
           <div class="sb-info-row"><span class="sb-info-key">Title</span>Change Title or Description for your creation</div>
           <div class="sb-info-row"><span class="sb-info-key">Export</span>Copy the current grid to clipboard or file</div>
           <div class="sb-info-row"><span class="sb-info-key">Import</span>Create or add a grid from clipboard or file</div>
         </div>
 
         <div class="sb-info-section">
-          <div class="sb-info-section-hd">Grid</div>
+          <div class="sb-info-section-hd" data-i18n="ui.info.sec.grid">Grid</div>
           <div class="sb-info-row"><span class="sb-info-key">Click</span>Select a Nodon or tile to edit its properties</div>
           <div class="sb-info-row"><span class="sb-info-key">Ctrl+Click</span>Toggle Nodons for multi-selection</div>
           <div class="sb-info-row"><span class="sb-info-key">Drag</span>Drag a Nodon directly onto an empty tile to move it</div>
         </div>
 
         <div class="sb-info-section">
-          <div class="sb-info-section-hd">Ports</div>
+          <div class="sb-info-section-hd" data-i18n="ui.info.sec.ports">Ports</div>
           <div class="sb-info-row"><span class="sb-info-key">Click</span>Click a port and then a Nodon to make a connection</div>
           <div class="sb-info-row"><span class="sb-info-key">Drag</span>Drag from a port to a Nodon to make a connection</div>
         </div>
 
         <div class="sb-info-section">
-          <div class="sb-info-section-hd">Wires</div>
+          <div class="sb-info-section-hd" data-i18n="ui.info.sec.wires">Wires</div>
           <div class="sb-info-row"><span class="sb-info-key">Click</span>Select a wire to delete with Del or ✕</div>
         </div>
 
         <div class="sb-info-section">
-          <div class="sb-info-section-hd">Actions</div>
+          <div class="sb-info-section-hd" data-i18n="ui.info.sec.actions">Actions</div>
           <div class="sb-info-row"><span class="sb-info-key">⊕ Move</span>Relocate selected Nodon(s) to empty tile(s)</div>
           <div class="sb-info-row"><span class="sb-info-key">⧉ Copy</span>Duplicate selected Nodon(s) to empty tile(s)</div>
           <div class="sb-info-row"><span class="sb-info-key">✕ Delete</span>Remove selected Nodon(s)</div>
         </div>
 
         <div class="sb-info-section">
-          <div class="sb-info-section-hd">Grid Shortcuts</div>
+          <div class="sb-info-section-hd" data-i18n="ui.info.sec.gridKb">Grid Shortcuts</div>
           <div class="sb-info-row"><span class="sb-info-key">B</span>Switch to Simulate Mode</div>
-          <div class="sb-info-row"><span class="sb-info-key">S</span>Enter freeform multi-select mode</div>
-          <div class="sb-info-row"><span class="sb-info-key">Del / ⌫</span>Enter freeform delete mode</div>
+          <div class="sb-info-row"><span class="sb-info-key">S</span>Enter freeform draw-to-select mode</div>
+          <div class="sb-info-row"><span class="sb-info-key">Del / ⌫</span>Enter freeform draw-to-delete (or cut) mode</div>
           <div class="sb-info-row"><span class="sb-info-key">Z</span>Undo last action</div>
           <div class="sb-info-row"><span class="sb-info-key">Y</span>Redo last undone action</div>
           <div class="sb-info-row"><span class="sb-info-key">Esc</span>Cancel current action or deselect</div>
         </div>
 
         <div class="sb-info-section">
-          <div class="sb-info-section-hd">Nodon Shortcuts</div>
+          <div class="sb-info-section-hd" data-i18n="ui.info.sec.nodonKb">Nodon Shortcuts</div>
           <div class="sb-info-row"><span class="sb-info-key">M</span>Enter Move mode for selected Nodon(s)</div>
           <div class="sb-info-row"><span class="sb-info-key">C</span>Enter Copy mode for selected Nodon(s)</div>
           <div class="sb-info-row"><span class="sb-info-key">Del / ⌫</span>Delete selected Nodon(s) or wire</div>
@@ -1076,7 +1241,65 @@ body.sim-mode #import-btn { display:none !important; }
 
         <hr class="sb-info-hr">
         <div class="sb-info-footer">
-          <a class="sb-info-link" href="https://drive.google.com/drive/folders/12L4yaKkD2xbmFYjoMopuojUfn0_tv6xE?usp=sharing" target="_blank" rel="noopener">Click here for the latest scripts and documentation!</a>
+          <a class="sb-info-link" href="https://github.com/zertolurian/gbg-arduinodon" target="_blank" rel="noopener">Click here for the latest scripts and documentation!</a>
+          <div class="sb-info-credit">ArduiNodon script and UI made by Zert.<br>DM @zertolurian in Discord for any queries or feedback!</div>
+          <div class="sb-info-disclosure">Disclosure: ArduiNodon UI was made using AI.</div>
+        </div>
+      </div>
+    </div>
+    <div id="sb-empty-mobile">
+      <div class="sb-info">
+        <div class="sb-info-title" data-i18n="ui.info.title">INFO</div>
+        <div class="sb-info-desc"><strong>ArduiNodon UI</strong> is a visual editor emulating <strong>Game Builder Garage</strong>, built for the <strong>ArduiNodon</strong> Arduino script. Place and connect Nodons just like in GBG, and then Export to share with others or paste into the <strong>ArduiNodon</strong> script to recreate all the Nodons and connections within GBG.</div>
+
+        <hr class="sb-info-hr">
+        <div class="sb-info-bm-header">Build Mode Controls (Mobile)</div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Header</div>
+          <div class="sb-info-row"><span class="sb-info-key">Mode</span>Switch to Simulate Mode</div>
+          <div class="sb-info-row"><span class="sb-info-key">Size</span>Edit or scrub vertically to adjust grid dimensions (max 19×11)</div>
+          <div class="sb-info-row"><span class="sb-info-key">Undo / Redo</span>Step backward or forward through edits</div>
+          <div class="sb-info-row"><span class="sb-info-key">Multi-select</span>Enter freeform multi-select mode (long press on grid to draw)</div>
+          <div class="sb-info-row"><span class="sb-info-key">Delete</span>Enter freeform delete mode (long press on grid to draw)</div>
+          <div class="sb-info-row"><span class="sb-info-key">Title</span>Change Title or Description for your creation</div>
+          <div class="sb-info-row"><span class="sb-info-key">Export</span>Copy the current grid to clipboard or file</div>
+          <div class="sb-info-row"><span class="sb-info-key">Import</span>Create or add a grid from clipboard or file</div>
+        </div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Grid</div>
+          <div class="sb-info-row"><span class="sb-info-key">Tap</span>Select a Nodon or tile to edit its properties</div>
+          <div class="sb-info-row"><span class="sb-info-key">Hold+Drag</span>Drag a Nodon directly onto an empty tile to move it</div>
+        </div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Ports</div>
+          <div class="sb-info-row"><span class="sb-info-key">Tap</span>Tap a port and then a Nodon to make a connection</div>
+          <div class="sb-info-row"><span class="sb-info-key">Hold+Drag</span>Drag from a port to a Nodon to make a connection</div>
+        </div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Wires</div>
+          <div class="sb-info-row"><span class="sb-info-key">Tap</span>Select a wire to delete with ✕</div>
+        </div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Actions</div>
+          <div class="sb-info-row"><span class="sb-info-key">⊕ Move</span>Relocate selected Nodon(s) to empty tile(s)</div>
+          <div class="sb-info-row"><span class="sb-info-key">⧉ Copy</span>Duplicate selected Nodon(s) to empty tile(s)</div>
+          <div class="sb-info-row"><span class="sb-info-key">✕ Delete</span>Remove selected Nodon(s)</div>
+        </div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Gestures</div>
+          <div class="sb-info-row"><span class="sb-info-key">Pinch</span>Zoom in and out of grid</div>
+          <div class="sb-info-row"><span class="sb-info-key">Back</span>Cancel current action or deselect</div>
+        </div>
+
+        <hr class="sb-info-hr">
+        <div class="sb-info-footer">
+          <a class="sb-info-link" href="https://github.com/zertolurian/gbg-arduinodon" target="_blank" rel="noopener">Click here for the latest scripts and documentation!</a>
           <div class="sb-info-credit">ArduiNodon script and UI made by Zert.<br>DM @zertolurian in Discord for any queries or feedback!</div>
           <div class="sb-info-disclosure">Disclosure: ArduiNodon UI was made using AI.</div>
         </div>
@@ -1089,12 +1312,12 @@ body.sim-mode #import-btn { display:none !important; }
       </div>
       <div class="ms-body">
         <div class="ms-hint" id="ms-hint"></div>
-        <button class="ms-btn ms-del" id="ms-del-btn">✕  Delete All</button>
-        <button class="ms-btn ms-move" id="ms-move-btn">⊕  Move All</button>
-        <button class="ms-btn ms-dupe" id="ms-dupe-btn">⧉  Copy All</button>
+        <button class="ms-btn ms-del" id="ms-del-btn" data-i18n="ui.ms.delAll">✕  Delete All</button>
+        <button class="ms-btn ms-move" id="ms-move-btn" data-i18n="ui.ms.moveAll">⊕  Move All</button>
+        <button class="ms-btn ms-dupe" id="ms-dupe-btn" data-i18n="ui.ms.copyAll">⧉  Copy All</button>
       </div>
       <div id="ms-footer">
-        <button class="sb-btn danger" id="ms-cancel-btn">Cancel</button>
+        <button class="sb-btn danger" id="ms-cancel-btn" data-i18n="ui.ms.cancel">Cancel</button>
       </div>
     </div>
     <!-- Simulate Mode info panel — shown in sim mode when no nodon is selected -->
@@ -1107,16 +1330,18 @@ body.sim-mode #import-btn { display:none !important; }
           In <strong>Normal View</strong>, the simulation will run exactly like in-game, displaying frame-by-frame at 60 frames per second by default.
           <br><br>
           In <strong>Subframe View</strong>, the simulation will display all the hidden subframes that the game calculates between each frame at 16 subframes per second by default.
+          <br><br>
+          <em>Note: Just like in GBG, frame 0 only lasts 1 subframe, and several Nodon functionalities only become enabled at certain points throughout frames 1-3.</em>
         </div>
 
         <hr class="sb-info-hr">
-        <div class="sb-info-bm-header">Simulate Mode Controls</div>
+        <div class="sb-info-bm-header" data-i18n="ui.info.sm.header">Simulate Mode Controls</div>
 
         <div class="sb-info-section">
-          <div class="sb-info-section-hd">Header</div>
+          <div class="sb-info-section-hd" data-i18n="ui.info.sec.header">Header</div>
           <div class="sb-info-row"><span class="sb-info-key">Mode</span>Return to Build Mode</div>
           <div class="sb-info-row"><span class="sb-info-key">View</span>Switch between Normal and Subframe Views</div>
-          <div class="sb-info-row"><span class="sb-info-key">Zoom ±</span>Adjust grid zoom</div>
+          <div class="sb-info-row"><span class="sb-info-key">Zoom</span>Edit or scroll to adjust grid zoom</div>
           <div class="sb-info-row"><span class="sb-info-key">Speed</span>Edit or scroll to adjust speed (max 100×)</div>
           <div class="sb-info-row"><span class="sb-info-key">▶ Start</span>Run simulation</div>
           <div class="sb-info-row"><span class="sb-info-key">■ Stop</span>Reset simulation to t = 0</div>
@@ -1128,7 +1353,7 @@ body.sim-mode #import-btn { display:none !important; }
         </div>
 
         <div class="sb-info-section">
-          <div class="sb-info-section-hd">Grid</div>
+          <div class="sb-info-section-hd" data-i18n="ui.info.sec.grid">Grid</div>
           <div class="sb-info-row"><span class="sb-info-key">Click</span>Select a Nodon to view settings and live details</div>
         </div>
 
@@ -1151,7 +1376,63 @@ body.sim-mode #import-btn { display:none !important; }
 
         <hr class="sb-info-hr">
         <div class="sb-info-footer">
-          <a class="sb-info-link" href="https://drive.google.com/drive/folders/12L4yaKkD2xbmFYjoMopuojUfn0_tv6xE?usp=sharing" target="_blank" rel="noopener">Click here for the latest scripts and documentation!</a>
+          <a class="sb-info-link" href="https://github.com/zertolurian/gbg-arduinodon" target="_blank" rel="noopener">Click here for the latest scripts and documentation!</a>
+          <div class="sb-info-credit">ArduiNodon script and UI made by Zert.<br>DM @zertolurian in Discord for any queries or feedback!</div>
+          <div class="sb-info-disclosure">Disclosure: ArduiNodon UI was made using AI.</div>
+        </div>
+      </div>
+    </div>
+    <div id="sim-empty-mobile">
+      <div class="sb-info">
+        <div class="sb-info-title">INFO</div>
+        <div class="sb-info-desc">
+          <strong>Simulate Mode</strong> emulates exactly what will happen within the Nodon grid when it is implemented in <strong>Game Builder Garage</strong>. Use the header controls to start, pause, and step through the simulation frame by frame. Tap any Nodon on the grid to interact with it (for Input Nodons) or inspect its real-time inputs, outputs, and internal state.
+          <br><br>
+          In <strong>Normal View</strong>, the simulation will run exactly like in-game, displaying frame-by-frame at 60 frames per second by default.
+          <br><br>
+          In <strong>Subframe View</strong>, the simulation will display all the hidden subframes that the game calculates between each frame at 16 subframes per second by default.
+          <br><br>
+          <em>Note: Just like in GBG, frame 0 only lasts 1 subframe, and several Nodon functionalities only become enabled at certain points throughout frames 1-3.</em>
+        </div>
+
+        <hr class="sb-info-hr">
+        <div class="sb-info-bm-header">Simulate Mode Controls (Mobile)</div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Header</div>
+          <div class="sb-info-row"><span class="sb-info-key">Mode</span>Return to Build Mode</div>
+          <div class="sb-info-row"><span class="sb-info-key">View</span>Switch between Normal and Subframe Views</div>
+          <div class="sb-info-row"><span class="sb-info-key">Speed</span>Edit or scrub vertically to adjust speed (max 100×)</div>
+          <div class="sb-info-row"><span class="sb-info-key">▶ Start</span>Run simulation</div>
+          <div class="sb-info-row"><span class="sb-info-key">■ Stop</span>Reset simulation to t = 0</div>
+          <div class="sb-info-row"><span class="sb-info-key">|| Pause</span>Freeze simulation, enable time step controls</div>
+          <div class="sb-info-row"><span class="sb-info-key">▶ Resume</span>Unpause simulation</div>
+          <div class="sb-info-row"><span class="sb-info-key">t</span>Elapsed time in seconds (1 s = 60 frames)</div>
+          <div class="sb-info-row"><span class="sb-info-key">f</span>Frames elapsed; +/− to step one frame</div>
+          <div class="sb-info-row"><span class="sb-info-key">sf</span>Current subframe; +/− to step one subframe</div>
+        </div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Grid</div>
+          <div class="sb-info-row"><span class="sb-info-key">Tap</span>Select a Nodon to view settings and live details</div>
+        </div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Gestures</div>
+          <div class="sb-info-row"><span class="sb-info-key">Pinch</span>Zoom in and out of grid</div>
+          <div class="sb-info-row"><span class="sb-info-key">Back</span>Cancel current action or deselect</div>
+        </div>
+
+        <div class="sb-info-section">
+          <div class="sb-info-section-hd">Nodons</div>
+          <div class="sb-info-row"><span class="sb-info-key">Button</span>Tap/Hold to trigger</div>
+          <div class="sb-info-row"><span class="sb-info-key">If Touched</span>Tap/Hold to trigger</div>
+          <div class="sb-info-row"><span class="sb-info-key">Touch Sensor</span>Tap/Hold to trigger</div>
+        </div>
+
+        <hr class="sb-info-hr">
+        <div class="sb-info-footer">
+          <a class="sb-info-link" href="https://github.com/zertolurian/gbg-arduinodon" target="_blank" rel="noopener">Click here for the latest scripts and documentation!</a>
           <div class="sb-info-credit">ArduiNodon script and UI made by Zert.<br>DM @zertolurian in Discord for any queries or feedback!</div>
           <div class="sb-info-disclosure">Disclosure: ArduiNodon UI was made using AI.</div>
         </div>
@@ -1166,7 +1447,7 @@ body.sim-mode #import-btn { display:none !important; }
       <div id="sim-panel">
         <div id="sim-panel-scroll"></div>
         <div id="sim-panel-footer">
-          <button class="sb-btn" id="sim-desel-btn">Deselect</button>
+          <button class="sb-btn" id="sim-desel-btn" data-i18n="ui.sb.deselect">Deselect</button>
         </div>
       </div>
       <div id="sb-scroll">
@@ -1180,7 +1461,7 @@ body.sim-mode #import-btn { display:none !important; }
           <div id="nodon-browser" style="display:none"></div>
           <div class="prop-row" id="p-comment-row" style="display:none">
             <div class="prop-lbl">Notes</div>
-            <textarea class="prop-in" id="p-comment" placeholder="//add a note..." rows="2"></textarea>
+            <textarea class="prop-in" id="p-comment" placeholder="//add a note..." rows="1"></textarea>
           </div>
         </div>
         <div id="nodon-settings-hd" class="section-gap" style="display:none">
@@ -1193,7 +1474,8 @@ body.sim-mode #import-btn { display:none !important; }
         </div>
       </div>
       <div id="sb-footer">
-        <button class="sb-btn danger" id="desel-btn">Deselect</button>
+        <button class="sb-btn danger" id="desel-btn" data-i18n="ui.sb.deselect">Deselect</button>
+        <button class="sb-btn danger" id="del-nodon-btn">Delete</button>
       </div>
     </div>
   </div>
@@ -1245,6 +1527,42 @@ body.sim-mode #import-btn { display:none !important; }
       <button class="modal-close" id="changelog-close" title="Close">✕</button>
     </div>
     <div class="modal-body" style="overflow-y:auto;gap:14px">
+      <div class="sb-info-section">
+        <div class="sb-info-section-hd">V1.2 — 6/20/2026</div>
+        <div class="sb-info-row" style="opacity:.75;line-height:1.6">Mobile-first header overhaul, full touch-gesture support, and UI polish across both desktop and mobile.</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">UI (Desktop)</div>
+        <div class="sb-info-row">Zoom control changed from +/− buttons to a single value field, with scroll-wheel support like the Speed field</div>
+        <div class="sb-info-row">Header now wraps into additional rows instead of squishing its controls when the window gets narrow</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">UI (Desktop and Mobile)</div>
+        <div class="sb-info-row">Nodon parameters stay faintly visible behind the live values shown in Simulate mode, instead of disappearing entirely</div>
+        <div class="sb-info-row">Sidebar is now collapsible</div>
+        <div class="sb-info-row">Header bottom border, status bar top border, and sidebar left border now use the accent color</div>
+        <div class="sb-info-row">The port you're connecting from now glows with a solid color (magenta for signal ports, blue for object ports) instead of a faint outline</div>
+        <div class="sb-info-row">Separator added between the Title field and the Export button in Build mode</div>
+        <div class="sb-info-row">Deselect button in Simulate mode now spans the full width of the sidebar footer, matching Build mode</div>
+        <div class="sb-info-row">Build mode sidebar footer now has separate Deselect and Delete buttons</div>
+        <div class="sb-info-row">Further compacted Notes field when empty</div>
+        <div class="sb-info-row">Language button added next to logo (currently disabled; JA translation coming soon!)</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">UI (Mobile)</div>
+        <div class="sb-info-row">Header now uses a flex-wrap layout that stacks into rows based on available screen space</div>
+        <div class="sb-info-row">Hover states are fully disabled on touch devices; buttons only respond to taps</div>
+        <div class="sb-info-row">Title label is hidden in Simulate mode, reducing the number of header rows</div>
+        <div class="sb-info-row">Sidebar now expands and collapses automatically depending on the action</div>
+        <div class="sb-info-row">Zoom buttons removed from the mobile header; replaced with pinch-to-zoom</div>
+        <div class="sb-info-row">Mobile-specific control list added</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">Touch Gestures (Mobile)</div>
+        <div class="sb-info-row">Pinch with two fingers on the grid to zoom in/out</div>
+        <div class="sb-info-row">Long-press now imitates drag actions on Desktop (dragging Nodons to move, dragging ports to make connections, dragging on the grid to draw freeform cut/selection in Delete/Multi-select Mode)</div>
+        <div class="sb-info-row">Drag up/down on the Size or Speed number fields to scrub their value, mirroring the scroll-wheel behavior on Desktop</div>
+        <div class="sb-info-row">Phone's back button now does the same thing Esc does on Desktop (cancel current action)</div>
+      </div>
+
+      <hr class="sb-info-hr">
+
       <div class="sb-info-section">
         <div class="sb-info-section-hd">V1.1 — 6/15/2026</div>
         <div class="sb-info-row" style="opacity:.75;line-height:1.6">Quick update to fix incorrect subframe being displayed during Normal View, and changed subframe numbering to a better convention. Added a few more QoL features with Delete Mode and refactored Multi-select Mode.</div>
@@ -1395,7 +1713,7 @@ const OPT = {
 // Param definition helpers
 const n = (key,lbl,mn,mx,st,df,note='') => ({key,lbl,type:'n',mn,mx,st,df,note});
 const s = (key,lbl,opts,df)             => ({key,lbl,type:'s',opts,df});
-const t = (key,lbl,df)                  => ({key,lbl,type:'t',df});
+const tp = (key,lbl,df)                 => ({key,lbl,type:'t',df});
 
 // Shared param instances (reused across many Object Nodons)
 const P = {
@@ -1426,7 +1744,343 @@ const P = {
 };
 
 const NODON_TYPES = {};
-const def = (key,name,abbr,cat,params) => { NODON_TYPES[key]={name,abbr,cat,params}; };
+
+/* ── Internationalisation ─────────────────────────────────────────────────
+   To add a new language (e.g. French):
+     1. Copy the entire 'ja' block and rename it 'fr'.
+     2. Fill in the translated strings.
+     3. Call setLang('fr') to switch at runtime.
+   
+   String keys:
+     'nd.<key>.name' / 'nd.<key>.abbr'  — Nodon labels
+     'ui.<key>'                          — interface labels
+   
+   Any missing key falls back to English automatically.
+────────────────────────────────────────────────────────────────────────── */
+let currentLang = 'en';
+const STRINGS = {
+  en: {
+    /* ── Nodon names & tile abbreviations ─────────────────── */
+    /* Input */
+    'nd.constant.name':'Constant',              'nd.constant.abbr':'CONST',
+    'nd.button.name':'Button',                  'nd.button.abbr':'BUTTON',
+    'nd.stick.name':'Stick',                    'nd.stick.abbr':'STICK',
+    'nd.ifTouched.name':'If Touched',           'nd.ifTouched.abbr':'IF-TCH',
+    'nd.touchPosition.name':'Touch Position',   'nd.touchPosition.abbr':'TCH-POS',
+    'nd.shake.name':'Shake',                    'nd.shake.abbr':'SHAKE',
+    'nd.tilt.name':'Tilt',                      'nd.tilt.abbr':'TILT',
+    'nd.ifFaceUp.name':'If Face Up',            'nd.ifFaceUp.abbr':'IF-F-UP',
+    'nd.rotationSpeed.name':'Rotation Speed',   'nd.rotationSpeed.abbr':'ROT-SPD',
+    'nd.irMotionCamera.name':'IR Motion Camera','nd.irMotionCamera.abbr':'IR-CAM',
+    'nd.objectBreak.name':'Object Break',       'nd.objectBreak.abbr':'OBJ-BRK',
+    'nd.onStart.name':'On Start',               'nd.onStart.abbr':'ON-STRT',
+    /* Middle */
+    'nd.calculator.name':'Calculator',          'nd.calculator.abbr':'CALC',
+    'nd.map.name':'Map',                        'nd.map.abbr':'MAP',
+    'nd.digitize.name':'Digitize',              'nd.digitize.abbr':'DGTZ',
+    'nd.squareRoot.name':'Square Root',         'nd.squareRoot.abbr':'SQRT',
+    'nd.absoluteValue.name':'Absolute Value',   'nd.absoluteValue.abbr':'ABSVAL',
+    'nd.inversion.name':'± Inversion',          'nd.inversion.abbr':'±INV',
+    'nd.triggerFrom0.name':'Trigger from 0',    'nd.triggerFrom0.abbr':'TRIG-0',
+    'nd.posToAngle.name':'Position → Angle',    'nd.posToAngle.abbr':'POS-ANG',
+    'nd.angleToPos.name':'Angle → Position',    'nd.angleToPos.abbr':'ANG-POS',
+    'nd.angleDiff.name':'Angle Difference',     'nd.angleDiff.abbr':'ANG-DIF',
+    'nd.comparison.name':'Comparison',          'nd.comparison.abbr':'COMP',
+    'nd.and.name':'AND',                        'nd.and.abbr':'AND',
+    'nd.not.name':'NOT',                        'nd.not.abbr':'NOT',
+    'nd.flag.name':'Flag',                      'nd.flag.abbr':'FLAG',
+    'nd.counter.name':'Counter',                'nd.counter.abbr':'CNTR',
+    'nd.random.name':'Random',                  'nd.random.abbr':'RANDOM',
+    'nd.timer.name':'Timer',                    'nd.timer.abbr':'TIMER',
+    "nd.bullseye.name":"Bull's-Eye",            'nd.bullseye.abbr':'BLS-EYE',
+    'nd.wormholeEntrance.name':'Wormhole Entrance','nd.wormholeEntrance.abbr':'WH-ENTR',
+    'nd.wormholeExit.name':'Wormhole Exit',     'nd.wormholeExit.abbr':'WH-EXIT',
+    'nd.comment.name':'Comment',                'nd.comment.abbr':'CMNT',
+    /* Output */
+    'nd.playSound.name':'Play Sound',           'nd.playSound.abbr':'SOUND',
+    'nd.backgroundMusic.name':'Background Music','nd.backgroundMusic.abbr':'BGM',
+    'nd.vibration.name':'Vibration',            'nd.vibration.abbr':'VIBR',
+    'nd.reduceGravity.name':'Reduce Gravity',   'nd.reduceGravity.abbr':'R-GRAV',
+    'nd.slowTime.name':'Slow Time',             'nd.slowTime.abbr':'SLOW',
+    'nd.retry.name':'Retry',                    'nd.retry.abbr':'RETRY',
+    'nd.endGame.name':'End Game',               'nd.endGame.abbr':'END',
+    'nd.swapGame.name':'Swap Game',             'nd.swapGame.abbr':'SWAP',
+    'nd.markerDisplay.name':'Marker Display',   'nd.markerDisplay.abbr':'MARKER',
+    'nd.marker2D.name':'2D Marker Display',     'nd.marker2D.abbr':'2D-MKR',
+    'nd.continuousMarker.name':'Continuous Marker Display','nd.continuousMarker.abbr':'CON-MKR',
+    'nd.irLight.name':'IR Light',               'nd.irLight.abbr':'IR-LIT',
+    /* Object */
+    'nd.person.name':'Person',                  'nd.person.abbr':'PERSON',
+    'nd.car.name':'Car',                        'nd.car.abbr':'CAR',
+    'nd.ufo.name':'UFO',                        'nd.ufo.abbr':'UFO',
+    'nd.object.name':'Object',                  'nd.object.abbr':'OBJECT',
+    'nd.fancyObject.name':'Fancy Object',       'nd.fancyObject.abbr':'FCY-OBJ',
+    'nd.movingObject.name':'Moving Object',     'nd.movingObject.abbr':'MOV-OBJ',
+    'nd.rotatingObject.name':'Rotating Object', 'nd.rotatingObject.abbr':'ROT-OBJ',
+    'nd.extendingObject.name':'Extending Object','nd.extendingObject.abbr':'EXT-OBJ',
+    'nd.effect.name':'Effect',                  'nd.effect.abbr':'EFFECT',
+    'nd.textObject.name':'Text Object',         'nd.textObject.abbr':'TEX-OBJ',
+    'nd.numberObject.name':'Number Object',     'nd.numberObject.abbr':'NUM-OBJ',
+    'nd.texture.name':'Texture',                'nd.texture.abbr':'TXTURE',
+    'nd.touchSensor.name':'Touch Sensor',       'nd.touchSensor.abbr':'TCH-SNS',
+    'nd.destroyingSensor.name':'Destroying Sensor','nd.destroyingSensor.abbr':'DES-SNS',
+    'nd.destroyedSensor.name':'Destroyed Sensor','nd.destroyedSensor.abbr':'DED-SNS',
+    'nd.grabbedSensor.name':'Grabbed Sensor',   'nd.grabbedSensor.abbr':'GRB-SNS',
+    'nd.locationSensor.name':'Location Sensor', 'nd.locationSensor.abbr':'LOC-SNS',
+    'nd.speedSensor.name':'Speed Sensor',       'nd.speedSensor.abbr':'SPD-SNS',
+    'nd.accelerationSensor.name':'Acceleration Sensor','nd.accelerationSensor.abbr':'ACL-SNS',
+    'nd.angleSensor.name':'Angle Sensor',       'nd.angleSensor.abbr':'ANG-SNS',
+    'nd.rotSpeedSensor.name':'Rotation-Speed Sensor','nd.rotSpeedSensor.abbr':'ROS-SNS',
+    'nd.slideConnector.name':'Slide Connector', 'nd.slideConnector.abbr':'SLIDE',
+    'nd.freeSlideConnector.name':'Free Slide Connector','nd.freeSlideConnector.abbr':'F-SLIDE',
+    'nd.hingeConnector.name':'Hinge Connector', 'nd.hingeConnector.abbr':'HINGE',
+    'nd.stringConnector.name':'String Connector','nd.stringConnector.abbr':'STRING',
+    'nd.launchObject.name':'Launch Object',     'nd.launchObject.abbr':'LAUNCH',
+    'nd.destroyObject.name':'Destroy Object',   'nd.destroyObject.abbr':'DSTROY',
+    'nd.teleportEntrance.name':'Teleport Entrance','nd.teleportEntrance.abbr':'TP-ENTR',
+    'nd.teleportExit.name':'Teleport Exit',     'nd.teleportExit.abbr':'TP-EXIT',
+    'nd.attractObject.name':'Attract Object',   'nd.attractObject.abbr':'ATTR',
+    'nd.world.name':'World',                    'nd.world.abbr':'WORLD',
+    'nd.gameScreen.name':'Game Screen',         'nd.gameScreen.abbr':'SCREEN',
+    'nd.camera.name':'Camera',                  'nd.camera.abbr':'CAMERA',
+    'nd.cameraPosition.name':'Camera Position', 'nd.cameraPosition.abbr':'CAM-POS',
+    'nd.cameraTarget.name':'Camera Target',     'nd.cameraTarget.abbr':'CAM-TGT',
+    'nd.cameraDirection.name':'Camera Direction','nd.cameraDirection.abbr':'CAM-DIR',
+    'nd.cameraAngle.name':'Camera Angle',       'nd.cameraAngle.abbr':'CAM-ANG',
+    'nd.head.name':'Head',                      'nd.head.abbr':'HEAD',
+    'nd.hand.name':'Hand',                      'nd.hand.abbr':'HAND',
+    /* ── UI labels ─────────────────────────────────────────── */
+    'ui.buildMode':  'Build Mode',    'ui.simulateMode': 'Simulate Mode',
+    'ui.toSimulate': '→ Simulate',    'ui.toBuild':      '← Build',
+    'ui.undo':       '↩ Undo',        'ui.redo':         '↪ Redo',
+    'ui.multisel':   'Multi-select',  'ui.deleteMode':   'Delete',
+    'ui.export':     'Export',        'ui.import':       'Import',
+    'ui.size':       'SIZE',          'ui.zoom':         'ZOOM',
+    'ui.speed':      'SPEED',         'ui.title':        'TITLE',
+    'ui.lang':       'JA',            // label on button when EN is active
+    // ── Mode toggle button spans ───────────────────────────────────────
+    'ui.btn.toBuild.phantom': 'Simulate Mode', 'ui.btn.toBuild.normal': 'Build Mode',    'ui.btn.toBuild.hover': '→ Simulate',
+    'ui.btn.toSim.phantom':   'Simulate Mode', 'ui.btn.toSim.normal':   'Simulate Mode', 'ui.btn.toSim.hover':   '← Build',
+    'ui.btn.subframe.phantom':'Subframe View',  'ui.btn.subframe.normal':'Normal View',    'ui.btn.subframe.hover':'→ Subframe',
+    // ── Sim controls ───────────────────────────────────────────────────
+    'ui.simStart':   '▶ Start',   'ui.simPause': '|| Pause',  'ui.simResume': '▶ Resume',
+    'ui.lbl.t':      't',         'ui.lbl.f':    'f',          'ui.lbl.sf':    'sf',
+    'ui.sfElapsed':  'subframes elapsed',
+    // ── Counts ─────────────────────────────────────────────────────────
+    'ui.nodon': 'nodon', 'ui.nodons': 'nodons', 'ui.connection': 'connection', 'ui.connections': 'connections',
+    // ── Tile action buttons ─────────────────────────────────────────────
+    'ui.tile.delete': '✕', 'ui.tile.delete.title': 'Delete Nodon',
+    'ui.tile.copy':   '⧉', 'ui.tile.copy.title':   'Copy Nodon',
+    'ui.wireDelTitle': 'Delete connection',
+    // ── Multi-select sidebar ────────────────────────────────────────────
+    'ui.ms.count':      '{n} Nodons selected',
+    'ui.ms.delAll':     '✕  Delete All', 'ui.ms.moveAll': '⊕  Move All', 'ui.ms.copyAll': '⧉  Copy All',
+    'ui.ms.cancel':     'Cancel',         'ui.ms.deselect': 'Deselect',
+    'ui.ms.hint.draw':  'Draw a loop or click Nodons to make a selection.',
+    'ui.ms.hint.adjust':'Draw a loop or click Nodons to adjust the selection.',
+    'ui.ms.hint.move':  'Click any empty tile; it becomes the top-left corner of the moved group. [Esc] to cancel.',
+    'ui.ms.hint.copy':  'Click any empty tile; it becomes the top-left corner of the copied group. [Esc] to cancel.',
+    // ── Pick panel titles ───────────────────────────────────────────────
+    'ui.pick.buttons': 'Button Inputs', 'ui.pick.texture': 'Texture Faces',
+    'ui.pick.conn':    'Connection Point','ui.pick.sound':  'Sound',
+    // ── Prop labels ─────────────────────────────────────────────────────
+    'ui.prop.buttons': 'Buttons', 'ui.prop.texFaces': 'Texture Faces',
+    'ui.prop.pitch':   'Pitch',   'ui.prop.sound':    'Sound', 'ui.prop.silent': 'Silent',
+    'ui.prop.conn':    'Connection Point',
+    // ── Build info panel sections ───────────────────────────────────────
+    'ui.info.title':      'INFO',
+    'ui.info.bm.header':  'Build Mode Controls',
+    'ui.info.sm.header':  'Simulate Mode Controls',
+    'ui.info.sec.header': 'Header',   'ui.info.sec.grid':   'Grid',
+    'ui.info.sec.ports':  'Ports',    'ui.info.sec.wires':  'Wires',
+    'ui.info.sec.actions':'Actions',  'ui.info.sec.gridKb': 'Grid Shortcuts',
+    'ui.info.sec.nodonKb':'Nodon Shortcuts', 'ui.info.sec.simKb': 'Simulate Shortcuts',
+    'ui.info.sec.changelog': 'Changelog', 'ui.info.sec.header2': 'Header Controls',
+    // ── Sim info panel sections ─────────────────────────────────────────
+    'ui.info.sec.simVer': 'Version',
+    'ui.info.v10': 'V1.0 — 6/12/2026', 'ui.info.v11': 'V1.1 — 6/15/2026',
+    // ── Sidebar buttons ─────────────────────────────────────────────────
+    'ui.sb.deselect': 'Deselect',
+    // ── Nodon type categories ───────────────────────────────────────────
+    'ui.cat.input':  'Input',  'ui.cat.middle': 'Middle',
+    'ui.cat.output': 'Output', 'ui.cat.object': 'Object',
+  },
+  ja: {
+    /* ── Nodon names & tile abbreviations — fill in Japanese ─ */
+    /* Input */
+    'nd.constant.name':'',              'nd.constant.abbr':'',
+    'nd.button.name':'',                'nd.button.abbr':'',
+    'nd.stick.name':'',                 'nd.stick.abbr':'',
+    'nd.ifTouched.name':'',             'nd.ifTouched.abbr':'',
+    'nd.touchPosition.name':'',         'nd.touchPosition.abbr':'',
+    'nd.shake.name':'',                 'nd.shake.abbr':'',
+    'nd.tilt.name':'',                  'nd.tilt.abbr':'',
+    'nd.ifFaceUp.name':'',              'nd.ifFaceUp.abbr':'',
+    'nd.rotationSpeed.name':'',         'nd.rotationSpeed.abbr':'',
+    'nd.irMotionCamera.name':'',        'nd.irMotionCamera.abbr':'',
+    'nd.objectBreak.name':'',           'nd.objectBreak.abbr':'',
+    'nd.onStart.name':'',               'nd.onStart.abbr':'',
+    /* Middle */
+    'nd.calculator.name':'',            'nd.calculator.abbr':'',
+    'nd.map.name':'',                   'nd.map.abbr':'',
+    'nd.digitize.name':'',              'nd.digitize.abbr':'',
+    'nd.squareRoot.name':'',            'nd.squareRoot.abbr':'',
+    'nd.absoluteValue.name':'',         'nd.absoluteValue.abbr':'',
+    'nd.inversion.name':'',             'nd.inversion.abbr':'',
+    'nd.triggerFrom0.name':'',          'nd.triggerFrom0.abbr':'',
+    'nd.posToAngle.name':'',            'nd.posToAngle.abbr':'',
+    'nd.angleToPos.name':'',            'nd.angleToPos.abbr':'',
+    'nd.angleDiff.name':'',             'nd.angleDiff.abbr':'',
+    'nd.comparison.name':'',            'nd.comparison.abbr':'',
+    'nd.and.name':'',                   'nd.and.abbr':'',
+    'nd.not.name':'',                   'nd.not.abbr':'',
+    'nd.flag.name':'',                  'nd.flag.abbr':'',
+    'nd.counter.name':'',               'nd.counter.abbr':'',
+    'nd.random.name':'',                'nd.random.abbr':'',
+    'nd.timer.name':'',                 'nd.timer.abbr':'',
+    'nd.bullseye.name':'',              'nd.bullseye.abbr':'',
+    'nd.wormholeEntrance.name':'',      'nd.wormholeEntrance.abbr':'',
+    'nd.wormholeExit.name':'',          'nd.wormholeExit.abbr':'',
+    'nd.comment.name':'',               'nd.comment.abbr':'',
+    /* Output */
+    'nd.playSound.name':'',             'nd.playSound.abbr':'',
+    'nd.backgroundMusic.name':'',       'nd.backgroundMusic.abbr':'',
+    'nd.vibration.name':'',             'nd.vibration.abbr':'',
+    'nd.reduceGravity.name':'',         'nd.reduceGravity.abbr':'',
+    'nd.slowTime.name':'',              'nd.slowTime.abbr':'',
+    'nd.retry.name':'',                 'nd.retry.abbr':'',
+    'nd.endGame.name':'',               'nd.endGame.abbr':'',
+    'nd.swapGame.name':'',              'nd.swapGame.abbr':'',
+    'nd.markerDisplay.name':'',         'nd.markerDisplay.abbr':'',
+    'nd.marker2D.name':'',              'nd.marker2D.abbr':'',
+    'nd.continuousMarker.name':'',      'nd.continuousMarker.abbr':'',
+    'nd.irLight.name':'',               'nd.irLight.abbr':'',
+    /* Object */
+    'nd.person.name':'',                'nd.person.abbr':'',
+    'nd.car.name':'',                   'nd.car.abbr':'',
+    'nd.ufo.name':'',                   'nd.ufo.abbr':'',
+    'nd.object.name':'',                'nd.object.abbr':'',
+    'nd.fancyObject.name':'',           'nd.fancyObject.abbr':'',
+    'nd.movingObject.name':'',          'nd.movingObject.abbr':'',
+    'nd.rotatingObject.name':'',        'nd.rotatingObject.abbr':'',
+    'nd.extendingObject.name':'',       'nd.extendingObject.abbr':'',
+    'nd.effect.name':'',                'nd.effect.abbr':'',
+    'nd.textObject.name':'',            'nd.textObject.abbr':'',
+    'nd.numberObject.name':'',          'nd.numberObject.abbr':'',
+    'nd.texture.name':'',               'nd.texture.abbr':'',
+    'nd.touchSensor.name':'',           'nd.touchSensor.abbr':'',
+    'nd.destroyingSensor.name':'',      'nd.destroyingSensor.abbr':'',
+    'nd.destroyedSensor.name':'',       'nd.destroyedSensor.abbr':'',
+    'nd.grabbedSensor.name':'',         'nd.grabbedSensor.abbr':'',
+    'nd.locationSensor.name':'',        'nd.locationSensor.abbr':'',
+    'nd.speedSensor.name':'',           'nd.speedSensor.abbr':'',
+    'nd.accelerationSensor.name':'',    'nd.accelerationSensor.abbr':'',
+    'nd.angleSensor.name':'',           'nd.angleSensor.abbr':'',
+    'nd.rotSpeedSensor.name':'',        'nd.rotSpeedSensor.abbr':'',
+    'nd.slideConnector.name':'',        'nd.slideConnector.abbr':'',
+    'nd.freeSlideConnector.name':'',    'nd.freeSlideConnector.abbr':'',
+    'nd.hingeConnector.name':'',        'nd.hingeConnector.abbr':'',
+    'nd.stringConnector.name':'',       'nd.stringConnector.abbr':'',
+    'nd.launchObject.name':'',          'nd.launchObject.abbr':'',
+    'nd.destroyObject.name':'',         'nd.destroyObject.abbr':'',
+    'nd.teleportEntrance.name':'',      'nd.teleportEntrance.abbr':'',
+    'nd.teleportExit.name':'',          'nd.teleportExit.abbr':'',
+    'nd.attractObject.name':'',         'nd.attractObject.abbr':'',
+    'nd.world.name':'',                 'nd.world.abbr':'',
+    'nd.gameScreen.name':'',            'nd.gameScreen.abbr':'',
+    'nd.camera.name':'',                'nd.camera.abbr':'',
+    'nd.cameraPosition.name':'',        'nd.cameraPosition.abbr':'',
+    'nd.cameraTarget.name':'',          'nd.cameraTarget.abbr':'',
+    'nd.cameraDirection.name':'',       'nd.cameraDirection.abbr':'',
+    'nd.cameraAngle.name':'',           'nd.cameraAngle.abbr':'',
+    'nd.head.name':'',                  'nd.head.abbr':'',
+    'nd.hand.name':'',                  'nd.hand.abbr':'',
+    /* ── UI labels ─────────────────────────────────────────── */
+    'ui.buildMode':  '',  'ui.simulateMode': '',
+    'ui.toSimulate': '',  'ui.toBuild':      '',
+    'ui.undo':       '',  'ui.redo':         '',
+    'ui.multisel':   '',  'ui.deleteMode':   '',
+    'ui.export':     '',  'ui.import':       '',
+    'ui.size':       '',  'ui.zoom':         '',
+    'ui.speed':      '',  'ui.title':        '',
+    'ui.lang':       'EN', // label on button when JA is active
+    'ui.btn.toBuild.phantom': '', 'ui.btn.toBuild.normal': '', 'ui.btn.toBuild.hover': '',
+    'ui.btn.toSim.phantom':   '', 'ui.btn.toSim.normal':   '', 'ui.btn.toSim.hover':   '',
+    'ui.btn.subframe.phantom':'', 'ui.btn.subframe.normal':'',  'ui.btn.subframe.hover':'',
+    'ui.simStart':  '', 'ui.simPause': '',  'ui.simResume': '',
+    'ui.lbl.t':     '', 'ui.lbl.f':   '',   'ui.lbl.sf':    '',
+    'ui.sfElapsed': '',
+    'ui.nodon': '', 'ui.nodons': '', 'ui.connection': '', 'ui.connections': '',
+    'ui.tile.delete': '✕', 'ui.tile.delete.title': '',
+    'ui.tile.copy':   '⧉', 'ui.tile.copy.title':   '',
+    'ui.wireDelTitle': '',
+    'ui.ms.count':      '',
+    'ui.ms.delAll':     '', 'ui.ms.moveAll': '', 'ui.ms.copyAll': '',
+    'ui.ms.cancel':     '', 'ui.ms.deselect': '',
+    'ui.ms.hint.draw':  '', 'ui.ms.hint.adjust': '',
+    'ui.ms.hint.move':  '', 'ui.ms.hint.copy':   '',
+    'ui.pick.buttons': '', 'ui.pick.texture': '',
+    'ui.pick.conn':    '', 'ui.pick.sound':   '',
+    'ui.prop.buttons': '', 'ui.prop.texFaces': '',
+    'ui.prop.pitch':   '', 'ui.prop.sound':   '', 'ui.prop.silent': '',
+    'ui.prop.conn':    '',
+    'ui.info.title':      '', 'ui.info.bm.header': '', 'ui.info.sm.header': '',
+    'ui.info.sec.header': '', 'ui.info.sec.grid':  '', 'ui.info.sec.ports': '',
+    'ui.info.sec.wires':  '', 'ui.info.sec.actions':'', 'ui.info.sec.gridKb': '',
+    'ui.info.sec.nodonKb':'',  'ui.info.sec.simKb': '', 'ui.info.sec.changelog': '',
+    'ui.info.sec.header2': '', 'ui.info.sec.simVer': '',
+    'ui.info.v10': '', 'ui.info.v11': '',
+    'ui.sb.deselect': '',
+    'ui.cat.input':  '', 'ui.cat.middle': '', 'ui.cat.output': '', 'ui.cat.object': '',
+  },
+};
+
+/** Return the string for `key` in the current language, falling back to English. */
+function t(key) {
+  return STRINGS[currentLang]?.[key] || STRINGS.en[key] || key;
+}
+
+/** Switch language and refresh all live text in the UI. */
+function setLang(lang) {
+  currentLang = lang;
+  // Tile abbreviations use NODON_TYPES[x].abbr getters — just re-render all typed tiles
+  Object.keys(nodes).forEach(nid => { if (nodes[nid]?.type) refreshSquareVisual(nid); });
+  // Sidebar title if a Nodon is currently selected
+  if (sel) {
+    const td = nodes[sel]?.type ? NODON_TYPES[nodes[sel].type] : null;
+    if (td) document.getElementById('sb-title').textContent = `${td.name} ${fmt(sel)}`;
+  }
+  // Static HTML elements tagged with data-i18n
+  applyI18n();
+}
+
+/** Update every element with a data-i18n or data-i18n-title attribute. */
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = t(el.dataset.i18n);
+    if (v) el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const v = t(el.dataset.i18nTitle);
+    if (v) el.title = v;
+  });
+  document.getElementById('lang-btn').textContent = currentLang.toUpperCase();
+}
+
+// def() accepts English name/abbr as fallback for any type not yet in STRINGS.
+// Property getters mean all existing NODON_TYPES[x].name / .abbr reads are live-translated
+// with no changes elsewhere in the codebase.
+const def = (key, name, abbr, cat, params) => {
+  STRINGS.en['nd.'+key+'.name'] ||= name;
+  STRINGS.en['nd.'+key+'.abbr'] ||= abbr;
+  STRINGS.ja['nd.'+key+'.name'] ??= '';
+  STRINGS.ja['nd.'+key+'.abbr'] ??= '';
+  NODON_TYPES[key] = {
+    get name() { return t('nd.'+key+'.name'); },
+    get abbr() { return t('nd.'+key+'.abbr'); },
+    cat, params,
+  };
+};
 
 /* ── INPUT ── */
 def('constant','Constant','CONST','Input',[
@@ -1559,7 +2213,7 @@ def('wormholeExit','Wormhole Exit','WH-EXIT','Middle',[
   s('id','Wormhole ID',OPT.wh,0),
 ]);
 def('comment','Comment','CMNT','Middle',[
-  t('comment','Comment Text','Comment'),
+  tp('comment','Comment Text','Comment'),
 ]);
 
 /* ── OUTPUT ── */
@@ -1589,8 +2243,8 @@ def('retry','Retry','RETRY','Output',[
 def('endGame','End Game','END','Output',[]);
 def('swapGame','Swap Game','SWAP','Output',[
   s('swapType','Swap Type',[[0,'Keyword'],[1,'Back to Previous']],0),
-  t('targetKeyword','Swap-Target Keyword',''),
-  t('gameKeyword',  'Game Keyword',''),
+  tp('targetKeyword','Swap-Target Keyword',''),
+  tp('gameKeyword',  'Game Keyword',''),
   s('transition','Transition',[[0,'With Title'],[1,'Without Title']],0),
 ]);
 def('markerDisplay','Marker Display','MARKER','Output',[
@@ -1676,7 +2330,7 @@ def('effect','Effect','EFFECT','Object',[
   P.ungrab,
 ]);
 def('textObject','Text Object','TEX-OBJ','Object',[
-  t('displayText','Display Text','Text Object'),
+  tp('displayText','Display Text','Text Object'),
   s('displaySide','Text Display Side',OPT.ds,5),
   P.visible, P.solid, P.movable, P.dlN, P.dlF, P.dvN, P.dvF,
   P.color,
@@ -2848,9 +3502,9 @@ let msDupeMode = null;    // multi-dupe anchor state
 let msDropPreview = [];   // nids currently showing drop-target highlights
 let zoomLevel  = 1.0;     // current grid zoom (applied via CSS zoom on #gc)
 let dragMove = null;   // { nid, startX, startY, active, ghostNid } during drag-to-move
-let dragJustCompleted = false; // true for ~50ms after drag ends, to suppress the residual click
+let dragJustCompleted = false; // true briefly after drag ends, to suppress the residual click (50ms mouse / 400ms touch — see set sites)
 let portDragState = null;      // { el, dir, nid, portIdx, startX, startY, isDrag } during port drag-to-connect
-let portDragJustCompleted = false; // true for ~50ms after port drag, to suppress the residual click
+let portDragJustCompleted = false; // true briefly after port drag ends, to suppress the residual click (50ms mouse / 400ms touch — see set sites)
 const wires    = [];   // signal wires  {from,to,outPort,inPort}
 const objWires = [];   // object wires  {from:bot_nid, to:top_nid}
 
@@ -3350,11 +4004,11 @@ function buildGrid() {
       simOvEl.className = 'sim-overlay';
       sq.appendChild(simOvEl);
       const delBtn = document.createElement('button');
-      delBtn.className = 'sq-del'; delBtn.textContent = '✕'; delBtn.title = 'Delete Nodon';
+      delBtn.className = 'sq-del'; delBtn.textContent = t('ui.tile.delete'); delBtn.title = t('ui.tile.delete.title');
       delBtn.addEventListener('click', e=>{ e.stopPropagation(); deleteNodon(nid); });
 
       const dupeBtn = document.createElement('button');
-      dupeBtn.className = 'sq-dupe'; dupeBtn.textContent = '⧉'; dupeBtn.title = 'Copy Nodon';
+      dupeBtn.className = 'sq-dupe'; dupeBtn.textContent = t('ui.tile.copy'); dupeBtn.title = t('ui.tile.copy.title');
       dupeBtn.addEventListener('click', e=>{ e.stopPropagation(); enterDupeMode(nid); });
 
       const moveBtn = document.createElement('button');
@@ -3398,6 +4052,9 @@ function buildGrid() {
 document.getElementById('ctrl-cols').value = COLS;
 document.getElementById('ctrl-rows').value = ROWS;
 buildGrid();
+document.getElementById('lang-btn').addEventListener('click', () =>
+  setLang(currentLang === 'en' ? 'ja' : 'en'));
+applyI18n();
 
 /* ═══════════════════════════════════════════════════════════════
    SVG SIZING
@@ -3630,9 +4287,9 @@ function redraw(newIdx=-1) {
   }
 
   const n=wires.length+objWires.length;
-  document.getElementById('wire-count').textContent=`${n} connection${n!==1?'s':''}`;
+  document.getElementById('wire-count').textContent=`${n} ${n!==1?t('ui.connections'):t('ui.connection')}`;
   const nc=Object.values(nodes).filter(nd=>nd.type).length;
-  document.getElementById('nodon-count').textContent=`${nc} nodon${nc!==1?'s':''}`;
+  document.getElementById('nodon-count').textContent=`${nc} ${nc!==1?t('ui.nodons'):t('ui.nodon')}`;
   if (sel) renderConnList();
 }
 
@@ -3805,7 +4462,7 @@ document.addEventListener('mousemove', e => {
         document.getElementById('sb-code').textContent    = code(dragMove.nid);
         document.getElementById('sb-title').textContent   = `${NODON_TYPES[nodes[dragMove.nid]?.type]?.name ?? 'Node'} ${fmt(dragMove.nid)}`;
         _syncPType(dragMove.nid);
-        const _pc=document.getElementById('p-comment'); _pc.value=nd.comment; _pc.style.height='auto'; _pc.style.height=(_pc.scrollHeight||54)+'px';
+        document.getElementById('p-comment').value=nd.comment; resizeComment();
         document.getElementById('p-comment-row').style.display = nd.type ? '' : 'none';
         renderParamInputs(dragMove.nid); renderNodonBrowser(dragMove.nid); renderConnList();
       }
@@ -4459,7 +5116,7 @@ function deleteNodon(nid) {
   if (sel === nid) {
     document.getElementById('sb-title').textContent = `${NODON_TYPES[nodes[nid]?.type]?.name ?? 'Node'} ${fmt(nid)}`;
     _syncPType(nid);
-    const _pc=document.getElementById('p-comment'); _pc.value=''; _pc.style.height='auto';
+    const _pc=document.getElementById('p-comment'); _pc.value=''; _pc.style.height='28px';
     document.getElementById('p-comment-row').style.display = 'none';
     document.getElementById('nodon-browser').style.display = 'none'; // reset before re-render
     renderParamInputs(nid);
@@ -4534,7 +5191,7 @@ function doMoveNodon(fromNid, toNid) {
     document.getElementById('sb-code').textContent    = code(toNid);
     document.getElementById('sb-title').textContent   = `${NODON_TYPES[nodes[toNid]?.type]?.name ?? 'Node'} ${fmt(toNid)}`;
     _syncPType(toNid);
-    const _pc=document.getElementById('p-comment'); _pc.value=nd.comment; _pc.style.height='auto'; _pc.style.height=(_pc.scrollHeight||54)+'px';
+    document.getElementById('p-comment').value=nd.comment; resizeComment();
     document.getElementById('p-comment-row').style.display = nd.type ? '' : 'none';
     renderParamInputs(toNid);
     renderConnList();
@@ -4558,13 +5215,22 @@ function doMoveNodon(fromNid, toNid) {
    NODE SELECTION
 ═══════════════════════════════════════════════════════════════ */
 function onSquareClick(nid, e) {
+  // A drag (mouse or touch long-press) just completed on this tile — ignore the
+  // residual click/synthetic-click that follows. Must be checked first, before
+  // any other branch, since the synthetic click can land regardless of mode.
+  if (dragJustCompleted) { dragJustCompleted = false; return; }
   if (simMode) {
     // In Simulation Mode: clicks select/deselect nodons for state inspection
     const nd = nodes[nid];
     if (!nd?.type) {
       simDeselectNid();             // empty tile → close panel
     } else if (simSelectedNid === nid) {
-      simDeselectNid();             // click same nodon → toggle off
+      // Re-tap same nodon: on mobile open sidebar instead of deselecting
+      if (document.body.classList.contains('is-touch')) {
+        if (document.getElementById('sidebar').classList.contains('active')) mobOpen();
+      } else {
+        simDeselectNid();           // desktop: click same nodon → toggle off
+      }
     } else {
       simSelectNid(nid);            // click different nodon → open panel
     }
@@ -4597,7 +5263,6 @@ function onSquareClick(nid, e) {
     }
     return; // stay in connection mode regardless of outcome
   }
-  if (dragJustCompleted) { dragJustCompleted = false; return; }
   const [cc, cr] = nid.split(',').map(Number);
   // Permanently disabled cells ([17,0] and [18,0]) are never interactive
   if (isDisabledCell(cc, cr)) return;
@@ -4662,7 +5327,11 @@ function onSquareClick(nid, e) {
   }
   // ── Plain click: clear any ctrl-click multi-selection ──
   if (msNids.length > 0) { clearMultiHighlights(); msNids = []; hideMultiSidebar(); document.body.classList.remove('multi-sel-on'); }
-  if (sel===nid) return;
+  if (sel===nid) {
+    // Re-tap same tile on mobile: open sidebar
+    if (document.getElementById('sidebar').classList.contains('active')) mobOpen();
+    return;
+  }
   deselectWire();
   const old=sel;
   if (old) { sel=null; refreshSquareVisual(old); }
@@ -4675,7 +5344,7 @@ function onSquareClick(nid, e) {
   document.getElementById('sb-code').textContent  = code(nid);
   document.getElementById('sb-title').textContent = `${NODON_TYPES[nodes[nid]?.type]?.name ?? 'Node'} ${fmt(nid)}`;
   _syncPType(nid);
-  const _pc=document.getElementById('p-comment'); _pc.value=nd.comment; _pc.style.height='auto'; _pc.style.height=(_pc.scrollHeight||54)+'px';
+  document.getElementById('p-comment').value=nd.comment; resizeComment();
   document.getElementById('p-comment-row').style.display = nd.type ? '' : 'none';
   renderParamInputs(nid);
   renderNodonBrowser(nid);
@@ -4810,7 +5479,7 @@ function openButtonPicker(nid, summaryBtn) {
     });
     content.appendChild(chips);
   });
-  document.getElementById('pick-title').textContent = 'Button Inputs';
+  document.getElementById('pick-title').textContent = t('ui.pick.buttons');
   document.getElementById('pick-modal').style.display = 'flex';
 }
 
@@ -4839,7 +5508,7 @@ function openTexturePicker(nid, summaryBtn) {
     });
     content.appendChild(chips);
   });
-  document.getElementById('pick-title').textContent = 'Texture Faces';
+  document.getElementById('pick-title').textContent = t('ui.pick.texture');
   document.getElementById('pick-modal').style.display = 'flex';
 }
 
@@ -4955,7 +5624,7 @@ function openConnPointPicker(nid, ownDef, targetDef, summaryBtn) {
     });
   });
 
-  document.getElementById('pick-title').textContent = 'Connection Point';
+  document.getElementById('pick-title').textContent = t('ui.pick.conn');
   document.getElementById('pick-modal').style.display = 'flex';
 }
 
@@ -5042,7 +5711,7 @@ function buildBGMTrackSelect(sel, names3, curVal) {
     sel.appendChild(opt);
   });
   const sOpt = document.createElement('option');
-  sOpt.value = 3; sOpt.textContent = 'Silent';
+  sOpt.value = 3; sOpt.textContent = t('ui.prop.silent');
   if (curVal == 3) sOpt.selected = true;
   sel.appendChild(sOpt);
 }
@@ -5202,7 +5871,7 @@ function openSoundPicker(nid, catVal, summaryBtn) {
     });
     content.appendChild(chipsDiv);
   });
-  document.getElementById('pick-title').textContent = 'Sound';
+  document.getElementById('pick-title').textContent = t('ui.pick.sound');
   document.getElementById('pick-modal').style.display = 'flex';
 }
 
@@ -5422,7 +6091,7 @@ function renderParamInputs(nid) {
     // Button picker: collapse 18 Yes/No selects into one chip-toggle button
     if (nd.type === 'button' && BTN_ALL_KEYS_SET.has(p.key)) {
       if (p.key === 'enA') {
-        lbl.textContent = 'Buttons'; row.appendChild(lbl);
+        lbl.textContent = t('ui.prop.buttons'); row.appendChild(lbl);
         const btn = document.createElement('button');
         btn.className = 'bf-btn';
         btn.textContent = getButtonSummary(nid);
@@ -5435,7 +6104,7 @@ function renderParamInputs(nid) {
     // Texture face picker: collapse faceX/Y/Z selects into one chip-toggle button
     if (nd.type === 'texture' && TEX_FACE_KEYS.has(p.key)) {
       if (p.key === 'faceX') {
-        lbl.textContent = 'Texture Faces'; row.appendChild(lbl);
+        lbl.textContent = t('ui.prop.texFaces'); row.appendChild(lbl);
         const btn = document.createElement('button');
         btn.className = 'bf-btn';
         btn.textContent = getTexFaceSummary(nid);
@@ -5471,7 +6140,7 @@ function renderParamInputs(nid) {
             // Instrument category: Pitch select only, force subRow = 0
             nd.params['subRow'] = 0;
             const prow = document.createElement('div'); prow.className = 'prop-row';
-            const plbl = document.createElement('div'); plbl.className = 'prop-lbl'; plbl.textContent = 'Pitch';
+            const plbl = document.createElement('div'); plbl.className = 'prop-lbl'; plbl.textContent = t('ui.prop.pitch');
             prow.appendChild(plbl);
             const psel = document.createElement('select'); psel.className = 'prop-in';
             const curP = nd.params.hasOwnProperty('subColumn') ? nd.params['subColumn'] : 0;
@@ -5490,7 +6159,7 @@ function renderParamInputs(nid) {
             const opts   = PLAY_SOUND_OPTIONS[catV];
             if (!opts) return;
             const srow = document.createElement('div'); srow.className = 'prop-row';
-            const slbl = document.createElement('div'); slbl.className = 'prop-lbl'; slbl.textContent = 'Sound';
+            const slbl = document.createElement('div'); slbl.className = 'prop-lbl'; slbl.textContent = t('ui.prop.sound');
             srow.appendChild(slbl);
             const ssel = document.createElement('select'); ssel.className = 'prop-in';
             [['Once', opts.once], ['Loop', opts.loop]].forEach(([groupLabel, sounds]) => {
@@ -5578,7 +6247,7 @@ function renderParamInputs(nid) {
     if (p.key === 'connectionOwn') {
       const targetDef = td.params.find(pp => pp.key === 'connectionTarget');
       if (targetDef) {
-        lbl.textContent = 'Connection Point'; row.appendChild(lbl);
+        lbl.textContent = t('ui.prop.conn'); row.appendChild(lbl);
         const btn = document.createElement('button');
         btn.className = 'bf-btn';
         btn.textContent = getConnPointSummary(nid, p, targetDef);
@@ -5838,10 +6507,25 @@ function renderParamInputs(nid) {
 /* ═══════════════════════════════════════════════════════════════
    PROPERTY INPUTS
 ═══════════════════════════════════════════════════════════════ */
+// Auto-grow the Notes textarea to fit its content. On mobile, the sidebar may still be
+// mid-transition (its CSS width animates 0 → var(--sb-w) when mobOpen() runs) at the moment
+// a Nodon is selected, since that transition is triggered by an async MutationObserver
+// microtask that fires *after* the synchronous selection code that sets the comment value.
+// Measuring scrollHeight while the textarea is still at/near zero width gives a bogus
+// (very tall) result that never gets corrected. To avoid all of that: always snap to the
+// short default instantly, then measure for real only once the transition has had time to
+// finish, so it only grows when the content has actually wrapped onto multiple lines.
+function resizeComment() {
+  const _pc = document.getElementById('p-comment');
+  _pc.style.height = '28px';  // safe short default — never visibly "stuck tall"
+  const grow = () => { _pc.style.height = '1px'; _pc.style.height = (_pc.scrollHeight || 28) + 'px'; };
+  if (document.body.classList.contains('is-touch')) setTimeout(grow, 210); // outlasts the .2s sidebar transition
+  else grow();                                                              // desktop sidebar never animates width
+}
+
 document.getElementById('p-comment').addEventListener('input',function(){
   // Auto-grow
-  this.style.height = 'auto';
-  this.style.height = this.scrollHeight + 'px';
+  this.style.height = '1px'; this.style.height = this.scrollHeight + 'px';
   if (!sel) return;
   saveHistoryDebounced();
   nodes[sel].comment=this.value;
@@ -5960,10 +6644,10 @@ function msUpdateSidebar() {
   const n = msNids.length;
   const hint = document.getElementById('ms-hint');
   if (hint) hint.textContent = n
-    ? 'Choose an action below, or draw a loop / click Nodons to adjust selection.'
-    : 'Draw a loop around Nodons to select them, or click individual Nodons.';
+    ? t('ui.ms.hint.adjust')
+    : t('ui.ms.hint.draw');
   const countEl = document.getElementById('ms-count');
-  if (countEl) countEl.textContent = `${n} Nodon${n !== 1 ? 's' : ''} in selection`;
+  if (countEl) countEl.textContent = t('ui.ms.count').replace('{n}', n);
   const dis = n === 0;
   ['ms-del-btn','ms-move-btn','ms-dupe-btn'].forEach(id => {
     const el = document.getElementById(id); if (el) el.disabled = dis;
@@ -6043,7 +6727,7 @@ function enterMultiMoveMode() {
   const rows = msNids.map(n=>Number(n.split(',')[1]));
   msMoveMode = { nids:[...msNids], minC:Math.min(...cols), minR:Math.min(...rows) };
   document.body.classList.add('multi-moving-mode');
-  document.getElementById('ms-hint').textContent = 'Click any empty tile; it becomes the top-left corner of the moved group. [Esc] to cancel.';
+  document.getElementById('ms-hint').textContent = t('ui.ms.hint.move');
   setStatus('Multi-move: Click an empty tile to move selection relative to top-left anchor.', true);
 }
 
@@ -6168,7 +6852,7 @@ function enterMultiDupeMode() {
   const rows = msNids.map(n=>Number(n.split(',')[1]));
   msDupeMode = { nids:[...msNids], minC:Math.min(...cols), minR:Math.min(...rows) };
   document.body.classList.add('multi-duping-mode');
-  document.getElementById('ms-hint').textContent = 'Click any empty tile; it becomes the top-left corner of the copied group. [Esc] to cancel.';
+  document.getElementById('ms-hint').textContent = t('ui.ms.hint.copy');
   setStatus('Multi-copy: Click an empty tile to copy selection relative to top-left anchor.', true);
 }
 
@@ -6221,7 +6905,7 @@ function doMultiDupe(anchorNid) {
 
 function refreshMultiSidebar(hint) {
   const n = msNids.length;
-  document.getElementById('ms-count').textContent = `${n} Nodon${n!==1?'s':''} selected`;
+  document.getElementById('ms-count').textContent = t('ui.ms.count').replace('{n}', n);
   if (hint !== undefined) document.getElementById('ms-hint').textContent = hint;
   document.getElementById('ms-del-btn').disabled  = n === 0;
   document.getElementById('ms-move-btn').disabled = n === 0;
@@ -6260,7 +6944,7 @@ function ctrlToggleMultiSel(nid) {
   }
   showMultiSidebar();
   document.body.classList.add('multi-sel-on');
-  refreshMultiSidebar('Choose an action, or Ctrl+click more Nodons.');
+  refreshMultiSidebar(t('ui.ms.hint.adjust'));
   setStatus(`${msNids.length} Nodon${msNids.length!==1?'s':''} selected.`);
 }
 
@@ -6361,6 +7045,8 @@ function _applyNodonTypeKey(typeKey) {
   }
   redraw();
   renderParamInputs(sel);
+  // On mobile: collapse sidebar after placing so the user can see the grid
+  if (typeKey) mobClose();
 }
 
 function renderNodonBrowser(nid) {
@@ -6453,18 +7139,28 @@ function applyGridSize() {
 /* ═══════════════════════════════════════════════════════════════
    ZOOM
 ═══════════════════════════════════════════════════════════════ */
-const ZOOM_MIN = 0.4, ZOOM_MAX = 2.5, ZOOM_STEP = 0.1;
+const ZOOM_MIN = 0.2, ZOOM_MAX = 2.5, ZOOM_STEP = 0.1;
 function applyZoom() {
   document.getElementById('gc').style.zoom = zoomLevel;
+  // Keep the header's zoom display in sync regardless of which code path changed
+  // zoomLevel (buttons removed below, fitZoomToGrid, pinch-to-zoom on touch, etc.)
+  const zi = document.getElementById('zoom-input');
+  if (zi && document.activeElement !== zi) zi.value = Math.round(zoomLevel * 10) / 10;
 }
-document.getElementById('zoom-in-btn').addEventListener('click', () => {
-  zoomLevel = Math.min(ZOOM_MAX, Math.round((zoomLevel + ZOOM_STEP) * 10) / 10);
+document.getElementById('zoom-input').addEventListener('change', () => {
+  const el = document.getElementById('zoom-input');
+  const v  = parseFloat(el.value);
+  zoomLevel = isNaN(v) ? zoomLevel : Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(v * 10) / 10));
   applyZoom();
 });
-document.getElementById('zoom-out-btn').addEventListener('click', () => {
-  zoomLevel = Math.max(ZOOM_MIN, Math.round((zoomLevel - ZOOM_STEP) * 10) / 10);
+document.getElementById('zoom-input').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+document.getElementById('zoom-input').addEventListener('wheel', e => {
+  e.preventDefault();
+  const el  = document.getElementById('zoom-input');
+  const cur = parseFloat(el.value) || zoomLevel;
+  zoomLevel = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round((cur - Math.sign(e.deltaY) * ZOOM_STEP) * 10) / 10));
   applyZoom();
-});
+}, { passive: false });
 function fitZoomToGrid() {
   const canvas = document.getElementById('canvas');
   const gridW = COLS * 52 + (COLS - 1) * 22 + 40; // 20px padding each side
@@ -6477,7 +7173,14 @@ function fitZoomToGrid() {
 /* ═══════════════════════════════════════════════════════════════
    BUTTONS
 ═══════════════════════════════════════════════════════════════ */
-document.getElementById('desel-btn').addEventListener('click',()=>{ deselect(); setStatus('Deselected.'); });
+document.getElementById('desel-btn').addEventListener('click', () => {
+  deselect();
+  setStatus('Deselected.');
+  mobClose();
+});
+document.getElementById('del-nodon-btn').addEventListener('click', () => {
+  if (sel && nodes[sel]?.type) { saveHistory(); deleteNodon(sel); setStatus('Nodon deleted.'); }
+});
 /* ═══════════════════════════════════════════════════════════════
    DELETE MODE
 ═══════════════════════════════════════════════════════════════ */
@@ -6577,7 +7280,8 @@ document.addEventListener('click', e => {
   const sidebar = document.getElementById('sidebar');
   if (deleteMode && !canvEl.contains(e.target) && e.target.id !== 'del-mode-btn') exitDelMode();
   if (msActive   && !canvEl.contains(e.target) && e.target.id !== 'multisel-btn'
-      && !(sidebar && sidebar.contains(e.target))) cancelMultiSelMode();
+      && !(sidebar && sidebar.contains(e.target))
+      && !(document.getElementById('mob-sidebar-tab')?.contains(e.target))) cancelMultiSelMode();
 }, true);
 document.getElementById('app-logo').addEventListener('click', () => {
   document.getElementById('changelog-modal').style.display = 'flex';
@@ -6592,9 +7296,12 @@ document.getElementById('changelog-modal').addEventListener('click', e => {
 document.getElementById('multisel-btn').addEventListener('click', () => {
   if (msActive) cancelMultiSelMode(); else enterMultiSelMode();
 });
-document.getElementById('ms-del-btn').addEventListener('click',  doMultiDelete);
-document.getElementById('ms-move-btn').addEventListener('click', enterMultiMoveMode);
-document.getElementById('ms-dupe-btn').addEventListener('click', enterMultiDupeMode);
+// del-mode-btn previously had no click handler at all — Delete Mode could only be entered via
+// the Delete/Backspace key (see KEYBOARD section), which made it unreachable on touch devices.
+document.getElementById('del-mode-btn').addEventListener('click', toggleDelMode);
+document.getElementById('ms-del-btn').addEventListener('click',  () => { doMultiDelete(); mobClose(); });
+document.getElementById('ms-move-btn').addEventListener('click', () => { enterMultiMoveMode(); mobClose(); });
+document.getElementById('ms-dupe-btn').addEventListener('click', () => { enterMultiDupeMode(); mobClose(); });
 document.getElementById('ms-cancel-btn').addEventListener('click', cancelMultiSelMode);
 
 // Picker modal (Button Inputs / Texture Faces)
@@ -6608,8 +7315,8 @@ document.getElementById('pick-modal').addEventListener('click',function(e){ if(e
 document.addEventListener('keydown',e=>{
   if (e.key==='Escape') {
     if (pend) { cancelPend(); setStatus('Connection cancelled.'); }
-    else if (msMoveMode) { cancelMultiMove(); document.getElementById('ms-hint').textContent='Draw a loop or click Nodons to adjust the selection.'; setStatus('Move cancelled.'); }
-    else if (msDupeMode) { cancelMultiDupe(); document.getElementById('ms-hint').textContent='Draw a loop or click Nodons to adjust the selection.'; setStatus('Copy cancelled.'); }
+    else if (msMoveMode) { cancelMultiMove(); document.getElementById('ms-hint').textContent=t('ui.ms.hint.adjust'); setStatus('Move cancelled.'); }
+    else if (msDupeMode) { cancelMultiDupe(); document.getElementById('ms-hint').textContent=t('ui.ms.hint.adjust'); setStatus('Copy cancelled.'); }
     else if (moveMode)   { cancelMoveMode(); }
     else if (dupeMode)   { cancelDupeMode(); }
     else if (selWire>=0) { deselectWire(); setStatus('Wire deselected.'); }
@@ -7124,7 +7831,7 @@ function enterSimMode() {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  document.getElementById('sim-controls').style.display     = 'flex';
+  document.getElementById('sim-controls').style.display     = 'contents';
   document.getElementById('tb-sep-buildmode').style.display = '';
   document.getElementById('build-mode-btn').style.display   = '';
   document.getElementById('tb-sep-viewmode').style.display  = '';
@@ -7299,7 +8006,7 @@ function updateSimStartBtn() {
     lbl.textContent = '■ Stop';
     btn.classList.add('sim-running');
   } else {
-    lbl.textContent = '▶ Start';
+    lbl.textContent = t('ui.simStart');
     btn.classList.remove('sim-running');
   }
 }
@@ -7310,10 +8017,10 @@ function updateSimPauseBtn() {
   const inp = document.getElementById('sim-speed-input');
   btn.disabled = !simRunning;
   if (simPaused) {
-    lbl.textContent = '▶ Resume';
+    lbl.textContent = t('ui.simResume');
     btn.classList.add('sim-paused');
   } else {
-    lbl.textContent = '|| Pause';
+    lbl.textContent = t('ui.simPause');
     btn.classList.remove('sim-paused');
   }
   if (inp) inp.value = simSpeed; // always show current speed regardless of pause state
@@ -7701,12 +8408,12 @@ function _updateSimTimeStat() {
   }
 
   const tSec = (displayF / 60).toFixed(2);
-  document.getElementById('sim-time-t').textContent  = `t = ${tSec}s`;
-  document.getElementById('sim-time-f').textContent  = `f = ${displayF}`;
-  document.getElementById('sim-time-sf').textContent = `sf = ${displaySf}`;
+  document.getElementById('sim-time-t').textContent  = `${t('ui.lbl.t')} = ${tSec}s`;
+  document.getElementById('sim-time-f').textContent  = `${t('ui.lbl.f')} = ${displayF}`;
+  document.getElementById('sim-time-sf').textContent = `${t('ui.lbl.sf')} = ${displaySf}`;
   // Subframes elapsed = raw number of ticks run (unaffected by display offset)
   const tot = document.getElementById('sim-sf-total');
-  if (tot) tot.textContent = `${Math.max(0, simGlobalTick - 15)} subframes elapsed`;
+  if (tot) tot.textContent = `${Math.max(0, simGlobalTick - 15)} ${t('ui.sfElapsed')}`;
 }
 
 function simLoop(timestamp) {
@@ -9184,7 +9891,7 @@ document.getElementById('sim-speed-input').addEventListener('input', () => {
       const btn = document.getElementById('sim-pause-btn');
       const lbl = document.querySelector('#sim-pause-btn .btn-lock-lbl');
       if (btn) { btn.disabled = false; btn.classList.add('sim-paused'); }
-      if (lbl) lbl.textContent = '▶ Resume';
+      if (lbl) lbl.textContent = t('ui.simResume');
       _updateStepButtons();
       setStatus('Speed set to 0 — simulation paused.');
     }
@@ -9235,14 +9942,18 @@ document.getElementById('sim-sf-fwd').addEventListener('click', () => {
   const sf     = simGlobalTick % TICKS_PER_FRAME;
   setStatus(`Stepped forward 1 sf → f = ${frames}, sf = ${sf}.`);
 });
-document.getElementById('sim-subframe-btn').addEventListener('click', () => {
+document.getElementById('sim-subframe-btn').addEventListener('click', function() {
   simSubframeMode  = !simSubframeMode;
   simSubframeAccum = 0; simFrameAccum = 0;
   updateSimSubframeBtn();
   _updateStepButtons(); // sf step buttons grey out in Normal View
   setStatus(simSubframeMode ? 'Switched to Subframe View.' : 'Switched to Normal View.');
+  this.blur();
 });
-document.getElementById('sim-desel-btn').addEventListener('click', simDeselectNid);
+document.getElementById('sim-desel-btn').addEventListener('click', () => {
+  simDeselectNid();
+  mobClose();
+});
 
 // ── Global mouseup: release all pressed nodons ───────────────────
 document.addEventListener('mouseup', () => {
@@ -9420,6 +10131,637 @@ document.addEventListener('keydown', e => {
     }
   }
 }, true); // capture phase so it fires before build-mode handler
+
+/* ── Mobile sidebar helpers ─────────────────────────────────────────────── */
+// Called from multiple places; centralises the open/close logic so it is not duplicated.
+function mobOpen() {
+  if (!document.body.classList.contains('is-touch')) return;
+  const _sb = document.getElementById('sidebar');
+  if (_sb.classList.contains('mob-open')) return;
+  _sb.classList.add('mob-open');
+  document.getElementById('mob-sidebar-tab').textContent = '❯';
+}
+function mobClose() {
+  if (!document.body.classList.contains('is-touch')) return;
+  document.getElementById('sidebar').classList.remove('mob-open');
+  document.getElementById('mob-sidebar-tab').textContent = '❮';
+}
+
+/* ── Mobile header: keep the Build/Simulate Mode button's centered position identical
+   between modes, by measuring (with whatever fonts actually rendered on this device —
+   no hardcoded pixel guess) the Size block vs. the View button, and padding the shorter
+   one to match. Off-screen clones are used so neither real element is ever disturbed. ── */
+/* Robust touch-device detection: 'ontouchstart' in window / navigator.maxTouchPoints are
+   well-known false positives on desktops and laptops with a touchscreen (the API exists,
+   but the user's primary input is a mouse). Checking that the primary pointer is coarse AND
+   has no hover capability reliably distinguishes phones/tablets from touch-capable desktops. */
+function isTouchDevice() {
+  return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+}
+
+function equalizeModeRowWidths() {
+  // Mobile-only concern: desktop's topbar doesn't center-wrap this row the same way.
+  if (!isTouchDevice()) return;
+  const sizeUnit = document.getElementById('tb-size-unit');
+  const viewBtn  = document.getElementById('sim-subframe-btn');
+  if (!sizeUnit || !viewBtn) return;
+
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute;visibility:hidden;left:-9999px;top:-9999px;white-space:nowrap;';
+  document.body.appendChild(probe);
+
+  const stripIds = root => { root.removeAttribute('id'); root.querySelectorAll('[id]').forEach(n => n.removeAttribute('id')); };
+
+  const sizeClone = sizeUnit.cloneNode(true);
+  stripIds(sizeClone);
+  sizeClone.style.removeProperty('display');
+  sizeClone.style.display = 'flex';
+  sizeClone.style.paddingRight = '0px';  // measure the unpadded natural width
+  probe.appendChild(sizeClone);
+  const sizeW = sizeClone.getBoundingClientRect().width;
+
+  const viewClone = viewBtn.cloneNode(true);
+  stripIds(viewClone);
+  viewClone.style.removeProperty('display');
+  viewClone.style.display = 'inline-flex';
+  probe.appendChild(viewClone);
+  const viewW = viewClone.getBoundingClientRect().width;
+
+  document.body.removeChild(probe);
+
+  const diff = viewW - sizeW;  // positive: View block is wider, Size needs padding to match
+  sizeUnit.style.paddingRight = Math.max(0, diff) + 'px';
+  viewBtn.style.marginRight   = Math.max(0, -diff) + 'px';
+}
+// Run once real fonts have finished loading — measuring against fallback fonts before they
+// load would bake in the wrong correction once the real (likely narrower/wider) font swaps in.
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(equalizeModeRowWidths);
+} else {
+  equalizeModeRowWidths();
+}
+
+/* ── Mobile sidebar ─────────────────────────────────────────────────────── */
+if (isTouchDevice()) {
+  document.body.classList.add('is-touch');
+  const sidebar = document.getElementById('sidebar');
+  const tab     = document.getElementById('mob-sidebar-tab');
+
+  // ── Back button == Escape ──────────────────────────────────────────────
+  // Mobile browsers/WebViews fire a 'popstate' when the hardware/gesture back button is
+  // pressed, but only if there's a history entry to go back to — so a dummy entry is kept
+  // on the stack at all times. Each press is immediately re-trapped (re-pushing the same
+  // dummy entry) so the back button never actually navigates away and loses the user's
+  // work; instead it dispatches a real Escape keydown, letting all of the existing Escape
+  // handlers (cancel pending wire, exit delete mode, close modals, deselect, etc.) run
+  // completely unchanged.
+  history.pushState({ nodonui: true }, '', location.href);
+  window.addEventListener('popstate', () => {
+    history.pushState({ nodonui: true }, '', location.href);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+  });
+
+  const open  = () => mobOpen();
+  const close = () => mobClose();
+
+  tab.addEventListener('click', () =>
+    sidebar.classList.contains('mob-open') ? close() : open());
+
+  // 1. Auto-open when 'active' is newly added (first Nodon selected)
+  // 2. Re-open when a different Nodon is selected (sb-code text changes while active)
+  new MutationObserver(mutations => {
+    for (const m of mutations) {
+      const hadActive = (m.oldValue || '').split(/\s+/).includes('active');
+      if (!hadActive && sidebar.classList.contains('active')) { open(); break; }
+    }
+  }).observe(sidebar, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+
+  // sb-code text changes whenever any Nodon becomes selected (including switching)
+  const sbCode = document.getElementById('sb-code');
+  if (sbCode) new MutationObserver(() => {
+    if (!document.body.dataset.lpdrop && sidebar.classList.contains('active')) open();
+  }).observe(sbCode, { childList: true, subtree: true, characterData: true });
+
+  // 3. Close sidebar after a multi-select action completes (multi-active removed)
+  new MutationObserver(mutations => {
+    for (const m of mutations) {
+      const hadMulti = (m.oldValue || '').split(/\s+/).includes('multi-active');
+      if (hadMulti && !sidebar.classList.contains('multi-active')) { close(); break; }
+    }
+  }).observe(sidebar, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+} else {
+  // ── Desktop peek tab ────────────────────────────────────────────────────
+  // Same tab, but the sidebar starts expanded and ONLY toggles on an explicit click —
+  // none of the mobile branch's auto-open/auto-close behaviors apply here.
+  const sidebar = document.getElementById('sidebar');
+  const tab     = document.getElementById('mob-sidebar-tab');
+  tab.textContent = '❯';  // starts expanded — matches mobile's convention (expanded = ❯)
+  tab.addEventListener('click', () => {
+    const collapsed = sidebar.classList.toggle('sidebar-collapsed');
+    tab.textContent = collapsed ? '❮' : '❯';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOUCH GESTURES  (pinch-to-zoom · long-press drag)
+   Only wired when the device is confirmed touch (is-touch set above).
+═══════════════════════════════════════════════════════════════ */
+if (document.body.classList.contains('is-touch')) {
+
+  // ── 1. Pinch-to-zoom on the canvas (zooms toward the pinch midpoint) ──
+  let _pinching   = false;
+  let _pinchDist0 = 0;
+  let _pinchZoom0 = 1;
+  let _pinchCx0   = 0;   // pinch midpoint relative to canvas left edge (includes scrollLeft)
+  let _pinchCy0   = 0;
+  let _pinchGx0   = 0;   // grid coord (in un-zoomed space) under the pinch midpoint
+  let _pinchGy0   = 0;
+
+  function _touchSep(t) {   // distance between two Touch objects
+    return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  }
+
+  canvEl.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      _pinching   = true;
+      _pinchDist0 = _touchSep(e.touches);
+      _pinchZoom0 = zoomLevel;
+      // Record where in the canvas the pinch centre is, and what grid point sits under it
+      const rect  = canvEl.getBoundingClientRect();
+      const midX  = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY  = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      _pinchCx0   = midX - rect.left;   // canvas-relative (viewport pixels)
+      _pinchCy0   = midY - rect.top;
+      _pinchGx0   = (canvEl.scrollLeft + _pinchCx0) / zoomLevel;  // grid point
+      _pinchGy0   = (canvEl.scrollTop  + _pinchCy0) / zoomLevel;
+      _lpAbort();          // cancel any pending long-press
+      _ppAbort();          // cancel any pending port long-press
+      e.preventDefault();  // suppress browser zoom
+    }
+  }, { passive: false });
+
+  canvEl.addEventListener('touchmove', e => {
+    if (!_pinching || e.touches.length !== 2) return;
+    const raw = _pinchZoom0 * (_touchSep(e.touches) / _pinchDist0);
+    zoomLevel = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, raw));
+    applyZoom();
+    // Re-anchor scroll so the pinch midpoint stays over the same grid point
+    canvEl.scrollLeft = _pinchGx0 * zoomLevel - _pinchCx0;
+    canvEl.scrollTop  = _pinchGy0 * zoomLevel - _pinchCy0;
+    e.preventDefault();
+  }, { passive: false });
+
+  canvEl.addEventListener('touchend',    e => { if (e.touches.length < 2) _pinching = false; });
+  canvEl.addEventListener('touchcancel', () => { _pinching = false; });
+
+  // ── 2. Long-press to drag a Nodon ────────────────────────────
+  // State variables
+  let _lpTimer   = null;   // setTimeout handle
+  let _lpNid     = null;   // nid being held
+  let _lpSrc     = null;   // initial touch coords { clientX, clientY }
+  let _lpTouchId = null;   // which touch finger we're tracking
+  let _lpDragOn  = false;  // true once the long-press threshold fires
+
+  function _lpAbort() {
+    if (_lpTimer) { clearTimeout(_lpTimer); _lpTimer = null; }
+    document.body.classList.remove('lp-pending');
+    _lpNid = null; _lpSrc = null; _lpTouchId = null;
+  }
+
+  function _findT(list, id) {   // find a Touch in a TouchList by identifier
+    for (let i = 0; i < list.length; i++) if (list[i].identifier === id) return list[i];
+    return null;
+  }
+
+  gridEl.addEventListener('touchstart', e => {
+    // Only act on a single finger; multi-touch is handled by pinch-zoom above
+    if (e.touches.length !== 1) { _lpAbort(); return; }
+    // Guard: do not interfere with any active build-mode interactions
+    if (simMode || moveMode || dupeMode || deleteMode || pend) return;
+
+    const t = e.touches[0];
+    // If the touch is on (or near) a port, let the port long-press handler take over.
+    // portAtPoint scans *all* elements at the point so it finds ports even under wire SVG paths.
+    if (portAtPoint(t.clientX, t.clientY)) return;
+
+    const sq  = document.elementFromPoint(t.clientX, t.clientY)?.closest('.sq[data-id]');
+    if (!sq || !nodes[sq.dataset.id]?.type) return;  // only typed (placed) Nodons
+    const nid = sq.dataset.id;
+
+    // In multi-select mode: a long-press on a tile that's part of the current selection
+    // drag-moves the whole group (below). A long-press anywhere else (including an
+    // unselected Nodon) is left for the freeform-draw long-press (canvEl) to handle, so
+    // stopPropagation() here only fires for the group-drag case.
+    if (msActive) {
+      if (!(msNids.length > 0 && msNids.includes(nid))) return;
+      e.stopPropagation();
+    }
+
+    _lpNid     = nid;
+    _lpSrc     = { clientX: t.clientX, clientY: t.clientY };
+    _lpTouchId = t.identifier;
+    document.body.classList.add('lp-pending');  // hide sq-del/move/dupe, stop animation
+
+    _lpTimer = setTimeout(() => {
+      _lpTimer  = null;
+      document.body.classList.remove('lp-pending');
+      _lpDragOn = true;
+      if (navigator.vibrate) navigator.vibrate(30);  // haptic cue
+      const isMulti = msNids.length > 0 && msNids.includes(_lpNid);
+      dragMove = { nid: _lpNid, startX: _lpSrc.clientX, startY: _lpSrc.clientY,
+                   active: false, ghostNid: null, isMulti };
+    }, 250);
+  }, { passive: true });
+
+  gridEl.addEventListener('touchmove', e => {
+    const t = _findT(e.touches, _lpTouchId) || e.touches[0];
+    if (!t) return;
+
+    // If the long-press timer is still running, cancel it when finger drifts
+    if (_lpTimer) {
+      const dx = t.clientX - _lpSrc.clientX, dy = t.clientY - _lpSrc.clientY;
+      if (dx * dx + dy * dy > 64) _lpAbort();  // 8 px drift cancels long-press
+      return;
+    }
+
+    if (!_lpDragOn || !dragMove) return;
+    e.preventDefault();  // prevent scroll while dragging (also suppresses synthetic mouse events)
+
+    // Activate drag movement once finger travels 5 px
+    if (!dragMove.active) {
+      const dx = t.clientX - dragMove.startX, dy = t.clientY - dragMove.startY;
+      if (dx * dx + dy * dy < 25) return;
+      dragMove.active = true;
+      document.body.classList.add('drag-moving');
+      if (dragMove.isMulti) {
+        // Group drag: enter msMoveMode (mirrors the mouse implementation) so the existing
+        // multi-drop-preview logic below has the anchor/min-corner data it needs.
+        mobClose();
+        if (!msMoveMode) enterMultiMoveMode();
+        const n = msMoveMode ? msMoveMode.nids.length : 1;
+        setStatus(`Drag to move ${n} Nodon${n !== 1 ? 's' : ''}: lift finger on a target tile.`, true);
+      } else {
+        // Close sidebar and clear any existing selection — do NOT select dragged Nodon
+        // (selecting it would add 'selected' class → sqpulse glow + action buttons during drag)
+        mobClose();
+        deselectWire();
+        if (sel) { const old = sel; sel = null; refreshSquareVisual(old); }
+        const _nm = NODON_TYPES[nodes[dragMove.nid]?.type]?.name || 'Nodon';
+        setStatus(`Drag to move ${_nm}: lift finger on an empty tile.`, true);
+      }
+    }
+
+    // Update ghost highlight on target cell
+    const targetNid = cellAtPoint(t.clientX, t.clientY);
+    if (dragMove.isMulti && msMoveMode) {
+      // Group drag: compute anchor from the dragged tile's offset to the selection's top-left
+      const [srcC, srcR] = dragMove.nid.split(',').map(Number);
+      if (targetNid) {
+        const [tC, tR] = targetNid.split(',').map(Number);
+        updateMultiDropPreview(id(tC - srcC + msMoveMode.minC, tR - srcR + msMoveMode.minR));
+      } else {
+        clearMultiDropPreview();
+      }
+      dragMove.ghostNid = null;
+    } else if (!dragMove.isMulti) {
+      const prev = dragMove.ghostNid;
+      if (prev && prev !== targetNid) {
+        const g = getSquare(prev); if (g) g.classList.remove('drag-over-valid', 'drag-over-invalid');
+      }
+      if (targetNid && targetNid !== dragMove.nid) {
+        const _nd2 = nodes[targetNid];
+        const [dc, dr]  = targetNid.split(',').map(Number);
+        const _mt       = nodes[dragMove.nid]?.type;
+        const _isSh     = isGameScreenShadow(dc, dr, dragMove.nid);
+        const _snid     = id(dc + 1, dr);
+        const _rOk      = _mt !== 'gameScreen' || (
+          dc + 1 < COLS && !isDisabledCell(dc+1, dr) &&
+          (!nodes[_snid]?.type || _snid === dragMove.nid)
+        );
+        const _valid    = !isDisabledCell(dc, dr) && !_isSh && _rOk && _nd2 && !_nd2.type;
+        if (targetNid !== prev) {
+          const g2 = getSquare(targetNid);
+          if (g2) g2.classList.add(_valid ? 'drag-over-valid' : 'drag-over-invalid');
+        }
+        dragMove.ghostNid = targetNid;
+      } else {
+        dragMove.ghostNid = null;
+      }
+    }
+    // Draw the white arc from source to finger
+    const _sr = svgEl.getBoundingClientRect();
+    drawDragWire((t.clientX - _sr.left) / zoomLevel, (t.clientY - _sr.top) / zoomLevel);
+  }, { passive: false });
+
+  function _lpDrop(e) {
+    _lpAbort();
+    if (!_lpDragOn || !dragMove) { _lpDragOn = false; return; }
+    const t = e.changedTouches[0];
+    const { active, nid, ghostNid, isMulti } = dragMove;
+
+    // Clean up visuals
+    if (ghostNid) { const g = getSquare(ghostNid); if (g) g.classList.remove('drag-over-valid', 'drag-over-invalid'); }
+    svgEl.querySelectorAll('.drag-wire').forEach(p => p.remove());
+    document.body.classList.remove('drag-moving');
+    dragMove  = null;
+    _lpDragOn = false;
+
+    if (!active) return;  // never moved far enough — no drop
+    e.preventDefault();   // cancel the synthetic click Android/iOS would otherwise fire next
+    dragJustCompleted = true;
+    // Widened vs. the desktop mouse-drag window (50ms): the synthetic click that follows a
+    // touchend can be delayed well past 50ms on some browsers, so this needs more headroom.
+    setTimeout(() => { dragJustCompleted = false; }, 400);
+
+    const targetNid = cellAtPoint(t.clientX, t.clientY);
+
+    // ── Group drag: commit the multi-move (mirrors the mouse mouseup logic) ──
+    if (isMulti && msMoveMode) {
+      if (targetNid) {
+        const [srcC, srcR] = nid.split(',').map(Number);
+        const [tC, tR] = targetNid.split(',').map(Number);
+        doMultiMove(id(tC - srcC + msMoveMode.minC, tR - srcR + msMoveMode.minR));
+      } else {
+        cancelMultiMove();
+        setStatus('Multi-move cancelled.');
+      }
+      return;
+    }
+
+    if (!targetNid || targetNid === nid) { if (sel) setStatus(`Node ${fmt(sel)} selected.`); return; }
+
+    const _nd3     = nodes[targetNid];
+    const [dc, dr] = targetNid.split(',').map(Number);
+    const _mt2     = nodes[nid]?.type;
+    const _isSh2   = isGameScreenShadow(dc, dr, nid);
+    const _snid2   = id(dc + 1, dr);
+    const _rOk2    = _mt2 !== 'gameScreen' || (
+      dc + 1 < COLS && !isDisabledCell(dc+1, dr) &&
+      (!nodes[_snid2]?.type || _snid2 === nid)
+    );
+    if (!isDisabledCell(dc, dr) && !_isSh2 && _rOk2 && _nd3 && !_nd3.type) {
+      // Temporarily set sel so doMoveNodon refreshes both cell visuals, then clear it
+      // Flag prevents MutationObserver from re-opening the sidebar during the update
+      sel = nid;
+      document.body.dataset.lpdrop = '1';
+      doMoveNodon(nid, targetNid);
+      sel = null;
+      refreshSquareVisual(targetNid);  // clear selection glow on the new cell
+      setTimeout(() => { delete document.body.dataset.lpdrop; mobClose(); }, 0);
+    } else {
+      if (sel) setStatus(`Node ${fmt(sel)} selected.`);
+    }
+  }
+
+  function _lpCancelDrag() {
+    _lpAbort();
+    if (_lpDragOn && dragMove) {
+      const { ghostNid, isMulti } = dragMove;
+      if (ghostNid) { const g = getSquare(ghostNid); if (g) g.classList.remove('drag-over-valid', 'drag-over-invalid'); }
+      svgEl.querySelectorAll('.drag-wire').forEach(p => p.remove());
+      document.body.classList.remove('drag-moving');
+      if (isMulti && msMoveMode) cancelMultiMove();
+      dragMove = null;
+    }
+    _lpDragOn = false;
+  }
+
+  // passive:false on touchend so _lpDrop can call preventDefault() to suppress the
+  // synthetic click that would otherwise follow a completed drag.
+  gridEl.addEventListener('touchend',    _lpDrop,       { passive: false });
+  gridEl.addEventListener('touchcancel', _lpCancelDrag, { passive: true });
+
+  // ── 3. Long-press to drag a port (start a wire connection) ───
+  let _ppTimer   = null;   // port long-press timer
+  let _ppPort    = null;   // { el, dir, nid, portIdx }
+  let _ppTouchId = null;
+  let _ppSrc     = null;
+  let _ppDragOn  = false;
+
+  function _ppAbort() {
+    if (_ppTimer) { clearTimeout(_ppTimer); _ppTimer = null; }
+    _ppPort = null; _ppTouchId = null; _ppSrc = null;
+  }
+
+  canvEl.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) { _ppAbort(); return; }
+    if (simMode || pend) return;
+    const t  = e.touches[0];
+    // Use portAtPoint (elementsFromPoint) so a connected wire on top doesn't block port detection
+    const p  = portAtPoint(t.clientX, t.clientY);
+    if (!p?.dataset?.id) return;
+
+    _ppPort    = { el: p, dir: p.dataset.dir, nid: p.dataset.id,
+                   portIdx: Number(p.dataset.portIdx || 0) };
+    _ppTouchId = t.identifier;
+    _ppSrc     = { clientX: t.clientX, clientY: t.clientY };
+
+    _ppTimer = setTimeout(() => {
+      _ppTimer  = null;
+      _ppDragOn = true;
+      if (navigator.vibrate) navigator.vibrate(20);
+      // Re-fetch port from DOM — it may have been recreated by refreshSquareVisual
+      // when the Nodon was selected, making the captured element stale
+      const freshP = (_ppPort.dir === 'in' || _ppPort.dir === 'out')
+        ? getPort(_ppPort.dir, _ppPort.nid, _ppPort.portIdx)
+        : getObjPort(_ppPort.dir, _ppPort.nid);
+      if (!freshP) { _ppDragOn = false; _ppPort = null; return; }  // port gone
+      // Activate portDragState the same way mousedown would, then immediately start the wire
+      portDragState = { el: freshP, dir: _ppPort.dir, nid: _ppPort.nid,
+                        portIdx: _ppPort.portIdx, isDrag: true,
+                        startX: _ppSrc.clientX, startY: _ppSrc.clientY };
+      onPortClick(_ppPort.dir, _ppPort.nid, freshP, _ppPort.portIdx);
+    }, 175);
+  }, { passive: true });
+
+  canvEl.addEventListener('touchmove', e => {
+    if (!_ppDragOn || !pend) return;
+    const t = _findT(e.touches, _ppTouchId) || e.touches[0];
+    if (!t) return;
+    e.preventDefault();
+    const sr = svgEl.getBoundingClientRect();
+    drawPending((t.clientX - sr.left) / zoomLevel, (t.clientY - sr.top) / zoomLevel);
+  }, { passive: false });
+
+  canvEl.addEventListener('touchend', e => {
+    if (!_ppDragOn) { _ppAbort(); return; }
+    _ppAbort();
+    _ppDragOn = false;
+    if (!portDragState?.isDrag) { portDragState = null; return; }
+    e.preventDefault();  // cancel the synthetic click that would otherwise re-fire onPortClick
+    const t = e.changedTouches[0];
+    portDragJustCompleted = true;
+    // Widened vs. the desktop mouse-drag window (50ms) for the same reason as the
+    // Nodon long-press drop: the synthetic click can arrive well after 50ms on touch.
+    setTimeout(() => { portDragJustCompleted = false; }, 400);
+    // Try exact port under finger, then fall back to nearest valid port on a Nodon body
+    const pt = portAtPoint(t.clientX, t.clientY);
+    if (pt) {
+      onPortClick(pt.dataset.dir, pt.dataset.id, pt, Number(pt.dataset.portIdx || 0));
+    } else if (pend) {
+      const nid = cellAtPoint(t.clientX, t.clientY);
+      if (nid && nodes[nid]?.type) {
+        const targetDir = COMPAT[pend.dir];
+        const isObj = pend.dir === 'top' || pend.dir === 'bot';
+        let connected = false;
+        if (isObj) {
+          const portEl = getObjPort(targetDir, nid);
+          if (portEl && !portEl.classList.contains('port-full') && !portEl.classList.contains('port-blocked')) {
+            onPortClick(targetDir, nid, portEl, 0); connected = true;
+          }
+        } else {
+          const [numIn, numOut] = NODON_PORTS[nodes[nid].type] ?? [0, 0];
+          const portCount = targetDir === 'in' ? numIn : numOut;
+          let bestEl = null, bestIdx = 0, bestDist = Infinity;
+          for (let i = 0; i < portCount; i++) {
+            const portEl = getPort(targetDir, nid, i);
+            if (!portEl || portEl.classList.contains('port-full') || portEl.classList.contains('port-blocked')) continue;
+            const r = portEl.getBoundingClientRect();
+            const d = (r.left + r.width/2 - t.clientX)**2 + (r.top + r.height/2 - t.clientY)**2;
+            if (d < bestDist) { bestDist = d; bestEl = portEl; bestIdx = i; }
+          }
+          if (bestEl) { onPortClick(targetDir, nid, bestEl, bestIdx); connected = true; }
+        }
+        if (!connected) cancelPend();
+      } else { cancelPend(); }
+    }
+    portDragState = null;
+  }, { passive: false });
+
+  canvEl.addEventListener('touchcancel', () => {
+    _ppAbort(); _ppDragOn = false;
+    if (pend) cancelPend();
+    portDragState = null;
+  }, { passive: true });
+
+  // ── 4. Long-press to start a freeform draw (Delete Mode / Multi-select Mode) ───
+  // Both modes already have a complete, working mousedown→mousemove→mouseup drag
+  // implementation (cut-path tracking, self-intersection/loop detection, etc.) — see the
+  // "DRAG-TO-MOVE" mousemove/mouseup handlers and the canvEl mousedown handler above.
+  // Rather than re-implement that logic a second time for touch, a long-press here just
+  // dispatches synthetic mouse events at the touch coordinates and lets that existing,
+  // already-correct logic do all the work.
+  let _fdTimer    = null;
+  let _fdTouchId  = null;
+  let _fdSrc      = null;
+  let _fdLastPt   = null;  // most recent touch position while dragging (for touchcancel)
+  let _fdDragOn   = false;
+
+  function _fdAbort() {
+    if (_fdTimer) { clearTimeout(_fdTimer); _fdTimer = null; }
+    _fdTouchId = null; _fdSrc = null; _fdLastPt = null;
+  }
+  function _fdFireMouse(type, x, y) {
+    const ev = new MouseEvent(type, { clientX: x, clientY: y, bubbles: true, cancelable: true });
+    (type === 'mouseup' ? document : canvEl).dispatchEvent(ev);
+  }
+
+  canvEl.addEventListener('touchstart', e => {
+    if (!(deleteMode || msActive)) { _fdAbort(); return; }
+    if (e.touches.length !== 1) { _fdAbort(); return; }
+    const t = e.touches[0];
+    if (portAtPoint(t.clientX, t.clientY)) return;  // ports keep their own tap behaviour
+
+    _fdSrc     = { clientX: t.clientX, clientY: t.clientY };
+    _fdTouchId = t.identifier;
+    // Slightly longer than the port/Nodon thresholds: a quick tap in these modes already
+    // deletes/selects immediately, so this needs enough margin to avoid misfiring while the
+    // user is just carefully aiming a tap at a small target.
+    _fdTimer = setTimeout(() => {
+      _fdTimer  = null;
+      _fdDragOn = true;
+      if (navigator.vibrate) navigator.vibrate(30);
+      _fdFireMouse('mousedown', _fdSrc.clientX, _fdSrc.clientY);
+    }, 225);
+  }, { passive: true });
+
+  canvEl.addEventListener('touchmove', e => {
+    if (!(deleteMode || msActive)) return;
+    const t = _findT(e.touches, _fdTouchId) || e.touches[0];
+    if (!t) return;
+
+    if (_fdTimer) {
+      const dx = t.clientX - _fdSrc.clientX, dy = t.clientY - _fdSrc.clientY;
+      if (dx * dx + dy * dy > 64) _fdAbort();  // 8px drift cancels long-press
+      return;
+    }
+    if (!_fdDragOn) return;
+    e.preventDefault();  // suppress scroll while drawing
+    _fdLastPt = { clientX: t.clientX, clientY: t.clientY };
+    _fdFireMouse('mousemove', t.clientX, t.clientY);
+  }, { passive: false });
+
+  canvEl.addEventListener('touchend', e => {
+    if (!(deleteMode || msActive)) { _fdAbort(); return; }
+    _fdAbort();
+    if (!_fdDragOn) return;
+    _fdDragOn = false;
+    e.preventDefault();  // cancel the synthetic click that would otherwise follow
+    const t = e.changedTouches[0];
+    _fdFireMouse('mouseup', t.clientX, t.clientY);
+  }, { passive: false });
+
+  canvEl.addEventListener('touchcancel', () => {
+    const wasDragOn = _fdDragOn, lastPt = _fdLastPt || _fdSrc;
+    _fdAbort();
+    if (wasDragOn) { _fdDragOn = false; _fdFireMouse('mouseup', lastPt?.clientX ?? 0, lastPt?.clientY ?? 0); }
+  }, { passive: true });
+
+  // ── 5. Drag-to-scrub on numeric inputs (Size, Speed) ──────────
+  // Mirrors the desktop scroll-wheel behaviour: each PX_PER_STEP of vertical drag applies
+  // one step, same direction convention as the wheel handlers (drag up = increase, matching
+  // "scroll up" on desktop). A short tap still focuses the field normally for typing.
+  function attachScrubDrag(el, stepFn) {
+    const PX_PER_STEP = 12;
+    let touchId = null, baseY = 0, accum = 0, scrubbing = false;
+
+    el.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      touchId = t.identifier; baseY = t.clientY; accum = 0; scrubbing = false;
+    }, { passive: true });
+
+    el.addEventListener('touchmove', e => {
+      let t = null;
+      for (let i = 0; i < e.touches.length; i++) if (e.touches[i].identifier === touchId) { t = e.touches[i]; break; }
+      if (!t) return;
+
+      if (!scrubbing) {
+        if (Math.abs(t.clientY - baseY) < 6) return;  // drift threshold before scrub engages
+        scrubbing = true;
+        el.blur();  // dismiss the keyboard if it was open; scrubbing takes over from here
+        if (navigator.vibrate) navigator.vibrate(10);
+      }
+      e.preventDefault();  // suppress page scroll while scrubbing
+
+      const dy = t.clientY - baseY;
+      baseY = t.clientY;   // incremental tracking — re-baseline every move
+      accum -= dy;          // drag up (dy<0) increases accum → increases the value
+      while (accum >= PX_PER_STEP) { stepFn(1);  accum -= PX_PER_STEP; }
+      while (accum <= -PX_PER_STEP) { stepFn(-1); accum += PX_PER_STEP; }
+    }, { passive: false });
+
+    el.addEventListener('touchend',    () => { touchId = null; scrubbing = false; });
+    el.addEventListener('touchcancel', () => { touchId = null; scrubbing = false; });
+  }
+
+  attachScrubDrag(document.getElementById('ctrl-cols'), dir => {
+    const el = document.getElementById('ctrl-cols');
+    el.value = Math.min(19, Math.max(1, (parseInt(el.value) || 1) + dir));
+    applyGridSize();
+  });
+  attachScrubDrag(document.getElementById('ctrl-rows'), dir => {
+    const el = document.getElementById('ctrl-rows');
+    el.value = Math.min(11, Math.max(1, (parseInt(el.value) || 1) + dir));
+    applyGridSize();
+  });
+  attachScrubDrag(document.getElementById('sim-speed-input'), dir => {
+    const el = document.getElementById('sim-speed-input');
+    const cur = parseFloat(el.value) || simSpeed;
+    el.value = Math.round(Math.min(100, Math.max(0.1, cur + dir * 0.1)) * 10) / 10;
+    el.dispatchEvent(new Event('input'));
+  });
+}
 
 })();
 </script>
