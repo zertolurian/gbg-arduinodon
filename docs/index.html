@@ -3317,8 +3317,12 @@ function applyImport(text, merge, offX = 0, offY = 0) {
     if (lines[i]?.trim().startsWith('//')) {
       parsedDesc  = lines[i].trim().slice(2).trim(); i++;
     }
-    // Skip any remaining consecutive // lines and the following blank line
-    while (i < lines.length && (lines[i].trim().startsWith('//') || lines[i].trim() === '')) i++;
+    // Skip only the blank line(s) separating the header from the body — NOT any further
+    // comment lines, since a comment immediately after the header is the first Nodon's
+    // note, not more header. (Previously this also consumed comment lines here, which
+    // silently swallowed the first Nodon's note whenever there was no description to
+    // separate it from the title.)
+    while (i < lines.length && lines[i].trim() === '') i++;
     if (!merge && parsedTitle) setLayoutName(parsedTitle, parsedDesc);
     lines.splice(0, i); // remove the parsed header from the line list
   }
@@ -7923,12 +7927,171 @@ function saveAsNdnx() {
 document.getElementById('io-save-ndnx-btn').addEventListener('click', saveAsNdnx);
 
 /* ── Share as Link ──────────────────────────────────────────────────────
-   Encodes the exported text into the URL's ?d= query parameter so a grid can be shared
-   by URL alone — loading that link auto-imports it (see the bottom of this script).
-   Compressed with CompressionStream when available (most modern browsers) to keep links
-   shorter, with a raw-bytes fallback for browsers that lack it; a one-character prefix
-   on the encoded payload tells the decoder which form it's in, so a link encoded by one
-   browser still decodes correctly when opened in another that differs in support. */
+   Encodes the grid into the URL's ?d= query parameter so it can be shared by URL alone —
+   loading that link auto-imports it (see the bottom of this script).
+
+   Encoding has two layers:
+   1. A custom compact binary format (below) that represents the exact same information
+      as the normal text export, but as binary records instead of `createXNodon(...)`
+      call syntax — skipping all the repeated function-name and punctuation overhead that
+      text inherently carries. Falls back to the plain text export if anything about the
+      grid can't be binary-encoded (e.g. a future Nodon type not yet in LINK_FN_NAMES),
+      so sharing never just breaks — it just produces a longer link in that rare case.
+   2. CompressionStream (deflate-raw) on top, when available, with a raw fallback for
+      browsers that lack it.
+   A one-character prefix records BOTH which layers were used, so any link still decodes
+   correctly regardless of which browser created or opens it:
+     '0' = raw text          '1' = compressed text
+     '2' = raw binary        '3' = compressed binary
+   LINK_FN_NAMES is append-only: a function name's position is its wire identifier, used
+   by every link ever generated. Adding a new Nodon type means adding its export function
+   name to the END of this list — never reordering, renaming, or removing an existing
+   entry — or every previously-shared link using a binary-encoded function after that
+   point would silently resolve to the wrong Nodon type. */
+const LINK_FN_NAMES = [
+  'createConstantNodon','createButtonNodon','createStickNodon','createIfTouchedNodon',
+  'createTouchPositionNodon','createShakeNodon','createTiltNodon','createIfFaceUpNodon',
+  'createRotationSpeedNodon','createIRMotionCameraNodon','createObjectBreakNodon','createOnStartNodon',
+  'createCalculatorNodon','createMapNodon','createDigitizeNodon','createSquareRootNodon',
+  'createAbsoluteValueNodon','createInversionNodon','createPositionToAngleNodon','createAngleToPositionNodon',
+  'createAngleDifferenceNodon','createComparisonNodon','createANDNodon','createNOTNodon',
+  'createFlagNodon','createCounterNodon','createRandomNodon','createTimerNodon',
+  'createBullseyeNodon','createWormholeEntranceNodon','createWormholeExitNodon','createCommentNodon',
+  'createPlaySoundNodon','createBackgroundMusicNodon','createVibrationNodon','createReduceGravityNodon',
+  'createSlowTimeNodon','createRetryNodon','createEndGameNodon','createSwapGameNodon',
+  'createMarkerDisplayNodon','createContinuousMarkerDisplayNodon','createIRLightNodon','createPersonNodon',
+  'createCarNodon','createUFONodon','createObjectNodon','createFancyObjectNodon',
+  'createMovingObjectNodon','createRotatingObjectNodon','createExtendingObjectNodon','createEffectNodon',
+  'createTextObjectNodon','createNumberObjectNodon','createTextureNodon','createTouchSensorNodon',
+  'createDestroyingSensorNodon','createDestroyedSensorNodon','createGrabbedSensorNodon','createLocationSensorNodon',
+  'createSpeedSensorNodon','createAccelerationSensorNodon','createAngleSensorNodon','createRotationSpeedSensorNodon',
+  'createSlideConnectorNodon','createFreeSlideConnectorNodon','createHingeConnectorNodon','createStringConnectorNodon',
+  'createLaunchObjectNodon','createDestroyObjectNodon','createTeleportObjectEntranceNodon','createTeleportObjectExitNodon',
+  'createAttractObjectNodon','createWorldNodon','createGameScreenNodon','createCameraNodon',
+  'createCameraPositionNodon','createCameraTargetNodon','createCameraDirectionNodon','createCameraAngleNodon',
+  'createHeadNodon','createHandNodon','createConnection','createObjectConnection',
+  'editObject',
+];
+
+// ── Generic varint (LEB128-style, multiplication-based so it stays correct for values
+//    beyond 32 bits, e.g. the 4294967295 "all bits set" bitfield sentinel) + zigzag for
+//    signed integers, plus length-prefixed UTF-8 string helpers built on top of both. ──
+function varintPush(arr, value) {
+  while (value > 0x7F) { arr.push((value % 128) | 0x80); value = Math.floor(value / 128); }
+  arr.push(value);
+}
+function varintRead(bytes, pos) {
+  let result = 0, mult = 1, b;
+  do { b = bytes[pos.i++]; result += (b & 0x7F) * mult; mult *= 128; } while (b & 0x80);
+  return result;
+}
+function zigzagEncode(n) { return n >= 0 ? n * 2 : -n * 2 - 1; }
+function zigzagDecode(z) { return (z % 2 === 0) ? z / 2 : -(z + 1) / 2; }
+function pushString(arr, str) {
+  const bytes = new TextEncoder().encode(str);
+  varintPush(arr, bytes.length);
+  for (const b of bytes) arr.push(b);
+}
+function readString(bytes, pos) {
+  const len = varintRead(bytes, pos);
+  const slice = bytes.slice(pos.i, pos.i + len);
+  pos.i += len;
+  return new TextDecoder().decode(slice);
+}
+
+/* Tokenizes generateExport()'s text into binary records using the exact same header- and
+   call-parsing rules applyImport() already uses (reusing parseCallArgs() itself), so the
+   two stay in lockstep automatically. Throws if any function name isn't in LINK_FN_NAMES
+   — the caller catches this and falls back to the legacy text format. */
+function binaryEncodeGrid(text) {
+  const lines = text.split('\n');
+  let i = 0, title = '', desc = '';
+  while (i < lines.length && lines[i].trim() === '') i++;
+  if (lines[i]?.trim().startsWith('//')) { title = lines[i].trim().slice(2).trim(); i++; }
+  if (lines[i]?.trim().startsWith('//')) { desc = lines[i].trim().slice(2).trim(); i++; }
+  // Only skip the blank line(s) after the header — see the matching fix and comment in
+  // applyImport(); a comment right after the header is the first Nodon's note.
+  while (i < lines.length && lines[i].trim() === '') i++;
+  lines.splice(0, i);
+
+  const records = [];
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('//')) { records.push({ kind: 'comment', text: line.slice(2).trim() }); continue; }
+    const m = line.match(/^([A-Za-z_]\w*)\s*\(([^]*?)\)\s*;?\s*$/);
+    if (!m) continue;
+    records.push({ kind: 'call', fn: m[1], args: parseCallArgs(m[2]) });
+  }
+
+  const out = [];
+  out.push(1); // binary format version
+  pushString(out, title);
+  pushString(out, desc);
+  varintPush(out, records.length);
+  for (const rec of records) {
+    if (rec.kind === 'comment') {
+      out.push(0);
+      pushString(out, rec.text);
+      continue;
+    }
+    const fnIdx = LINK_FN_NAMES.indexOf(rec.fn);
+    if (fnIdx === -1) throw new Error('Unknown function name for binary link encoding: ' + rec.fn);
+    out.push(1);
+    out.push(fnIdx);
+    out.push(rec.args.length);
+    for (const arg of rec.args) {
+      if (arg.isStr) {
+        out.push(2); pushString(out, arg.val);
+      } else if (/^-?\d+$/.test(arg.val)) {
+        // Plain integer (generateExport() never emits 0b/0x notation, only this) —
+        // the common case, packed as a compact zigzag varint.
+        out.push(0); varintPush(out, zigzagEncode(Number(arg.val)));
+      } else {
+        // Anything else (decimals, or any value shaped differently than expected) is kept
+        // as the exact original text. Guarantees lossless round-tripping with no precision
+        // or overflow risk, at a small size cost — and it's the minority case regardless.
+        out.push(1); pushString(out, arg.val);
+      }
+    }
+  }
+  return new Uint8Array(out);
+}
+
+/* Reconstructs the same text generateExport() would have produced (not necessarily
+   byte-identical, but parses identically) and hands it to the existing, unmodified
+   applyImport() — this function never needs to know anything about what any of these
+   calls actually mean. */
+function binaryDecodeGrid(bytes) {
+  const pos = { i: 0 };
+  const version = bytes[pos.i++];
+  if (version !== 1) throw new Error('Unsupported binary link format version: ' + version);
+  const title = readString(bytes, pos);
+  const desc  = readString(bytes, pos);
+  const recordCount = varintRead(bytes, pos);
+  const lines = ['// ' + title];
+  if (desc) lines.push('// ' + desc);
+  lines.push('');
+  for (let r = 0; r < recordCount; r++) {
+    const kind = bytes[pos.i++];
+    if (kind === 0) { lines.push('// ' + readString(bytes, pos)); continue; }
+    const fnIdx = bytes[pos.i++];
+    const fnName = LINK_FN_NAMES[fnIdx];
+    if (fnName === undefined) throw new Error('Unknown function index in binary link: ' + fnIdx);
+    const argCount = bytes[pos.i++];
+    const argStrs = [];
+    for (let a = 0; a < argCount; a++) {
+      const tag = bytes[pos.i++];
+      if (tag === 0) argStrs.push(String(zigzagDecode(varintRead(bytes, pos))));
+      else if (tag === 1) argStrs.push(readString(bytes, pos));
+      else if (tag === 2) argStrs.push('"' + readString(bytes, pos).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"');
+      else throw new Error('Unknown argument tag in binary link: ' + tag);
+    }
+    lines.push(`${fnName}(${argStrs.join(',')});`);
+  }
+  return lines.join('\n');
+}
+
 function bytesToBase64Url(bytes) {
   let binary = '';
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
@@ -7942,31 +8105,42 @@ function base64UrlToBytes(b64url) {
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return bytes;
 }
-async function encodeGridForLink(text) {
-  const raw = new TextEncoder().encode(text);
-  if (window.CompressionStream) {
-    try {
-      const cs = new CompressionStream('deflate-raw');
-      const writer = cs.writable.getWriter();
-      writer.write(raw);
-      writer.close();
-      const buf = await new Response(cs.readable).arrayBuffer();
-      return '1' + bytesToBase64Url(new Uint8Array(buf));
-    } catch (_) { /* fall through to the uncompressed form below */ }
-  }
-  return '0' + bytesToBase64Url(raw);
+async function deflateBytes(bytes) {
+  const cs = new CompressionStream('deflate-raw');
+  const writer = cs.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  return new Uint8Array(await new Response(cs.readable).arrayBuffer());
 }
-async function decodeGridFromLink(encoded) {
-  const isCompressed = encoded[0] === '1';
-  const bytes = base64UrlToBytes(encoded.slice(1));
-  if (!isCompressed) return new TextDecoder().decode(bytes);
-  if (!window.DecompressionStream) throw new Error('This browser cannot open compressed share links.');
+async function inflateBytes(bytes) {
   const ds = new DecompressionStream('deflate-raw');
   const writer = ds.writable.getWriter();
   writer.write(bytes);
   writer.close();
-  const buf = await new Response(ds.readable).arrayBuffer();
-  return new TextDecoder().decode(buf);
+  return new Uint8Array(await new Response(ds.readable).arrayBuffer());
+}
+async function encodeGridForLink(text) {
+  let payload, isBinary;
+  try { payload = binaryEncodeGrid(text); isBinary = true; }
+  catch (_) { payload = new TextEncoder().encode(text); isBinary = false; } // fall back to legacy text format
+  if (window.CompressionStream) {
+    try {
+      const compressed = await deflateBytes(payload);
+      return (isBinary ? '3' : '1') + bytesToBase64Url(compressed);
+    } catch (_) { /* fall through to the uncompressed form below */ }
+  }
+  return (isBinary ? '2' : '0') + bytesToBase64Url(payload);
+}
+async function decodeGridFromLink(encoded) {
+  const tag = encoded[0];
+  const isBinary     = (tag === '2' || tag === '3');
+  const isCompressed = (tag === '1' || tag === '3');
+  let bytes = base64UrlToBytes(encoded.slice(1));
+  if (isCompressed) {
+    if (!window.DecompressionStream) throw new Error('This browser cannot open compressed share links.');
+    bytes = await inflateBytes(bytes);
+  }
+  return isBinary ? binaryDecodeGrid(bytes) : new TextDecoder().decode(bytes);
 }
 document.getElementById('io-share-btn').addEventListener('click', async () => {
   const btn = document.getElementById('io-share-btn');
