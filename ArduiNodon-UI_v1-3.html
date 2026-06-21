@@ -80,7 +80,15 @@ body.is-touch .top-num { -webkit-user-select:none; user-select:none; -webkit-tou
   flex:1; overflow:auto; background:var(--bg);
   background-image:radial-gradient(circle,rgba(61,114,255,.09) 1px,transparent 1px);
   background-size:24px 24px;
+  scrollbar-width: thin; scrollbar-color: var(--border-l) var(--panel);
 }
+#canvas::-webkit-scrollbar { width:11px; height:11px; }
+#canvas::-webkit-scrollbar-track { background:var(--panel); }
+#canvas::-webkit-scrollbar-thumb {
+  background:var(--border-l); border-radius:6px; border:2px solid var(--panel);
+}
+#canvas::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+#canvas::-webkit-scrollbar-corner { background:var(--panel); }
 #gc { position:relative; display:inline-block; padding:20px; }
 #grid {
   display:grid;
@@ -301,6 +309,11 @@ body.is-touch #sidebar.multi-active #sb-empty-mobile { display:none; }
   display:flex; gap:8px; align-items:baseline;
   font-size:12.5px; font-weight:300; color:var(--text); opacity:.65; line-height:1.35;
 }
+/* Changelog feature rows get a bullet; the inline-styled summary line per version doesn't */
+#changelog-modal .sb-info-row:not([style]) { padding-left:13px; position:relative; }
+#changelog-modal .sb-info-row:not([style])::before {
+  content:'•'; position:absolute; left:0; top:0; opacity:.5;
+}
 .sb-info-key {
   font-family:'Share Tech Mono',monospace; font-size:10.5px; color:var(--accent);
   flex-shrink:0; opacity:.9;
@@ -348,10 +361,15 @@ select.prop-in option { background:#090e1a; color:var(--text); }
 .ce-del:hover { color:#ef4444; }
 .no-ce { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--muted); opacity:.5; }
 
-#sb-footer { flex-shrink:0; padding:10px 15px; border-top:1px solid var(--border); display:flex; gap:8px; }
+#sb-footer { flex-shrink:0; padding:10px 15px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:8px; }
+.sb-footer-row { display:flex; gap:8px; }
 .sb-btn { flex:1; font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:500; letter-spacing:.5px; padding:7px; border-radius:3px; cursor:pointer; border:1px solid var(--border-l); background:transparent; color:var(--muted); transition:border-color .12s,color .12s; }
 .sb-btn:hover { border-color:var(--border-l); color:var(--text); }
 .sb-btn.danger:hover { border-color:#ef4444; color:#ef4444; }
+.sb-btn.sb-move { border-color:#1d4ed8; color:#60a5fa; }
+.sb-btn.sb-move:hover { background:rgba(37,99,235,.12); border-color:#3b82f6; }
+.sb-btn.sb-dupe { border-color:#166534; color:#4ade80; }
+.sb-btn.sb-dupe:hover { background:rgba(34,197,94,.1); border-color:#22c55e; }
 
 /* ═══ STATUS BAR ═══ */
 #statusbar { flex-shrink:0; height:26px; display:flex; align-items:center; gap:8px; padding:0 14px; background:var(--panel); border-top:1px solid var(--accent); font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:.3px; }
@@ -516,6 +534,10 @@ body.duping-mode .sq.disabled {
 
 /* ─── Selected wire ─── */
 .wire.wire-sel { stroke:#ef4444 !important; stroke-width:3.5 !important; }
+/* Wire is part of the multi-selection (both endpoints selected) — matches the yellow
+   used for multi-selected Nodons. */
+.wire.multi-sel     { stroke:#facc15 !important; stroke-width:3 !important; }
+.obj-wire.multi-sel { stroke:#facc15 !important; stroke-width:3 !important; }
 
 /* ─── Wire delete button ─── */
 #wire-del-btn {
@@ -538,6 +560,15 @@ body.duping-mode .sq.disabled {
 .modal-close { background:none; border:none; color:var(--muted); font-size:15px; cursor:pointer; padding:2px 5px; line-height:1; transition:color .12s; }
 .modal-close:hover { color:#ef4444; }
 .modal-body { padding:14px 15px 15px; display:flex; flex-direction:column; gap:10px; flex:1; overflow:hidden; min-height:0; }
+/* Changelog scrollbar matches the grid's (#canvas) styling */
+#changelog-modal .modal-body { scrollbar-width: thin; scrollbar-color: var(--border-l) var(--panel); }
+#changelog-modal .modal-body::-webkit-scrollbar { width:11px; height:11px; }
+#changelog-modal .modal-body::-webkit-scrollbar-track { background:var(--panel); }
+#changelog-modal .modal-body::-webkit-scrollbar-thumb {
+  background:var(--border-l); border-radius:6px; border:2px solid var(--panel);
+}
+#changelog-modal .modal-body::-webkit-scrollbar-thumb:hover { background:var(--accent); }
+#changelog-modal .modal-body::-webkit-scrollbar-corner { background:var(--panel); }
 .modal-hint { font-family:'Share Tech Mono',monospace; font-size:9.5px; color:var(--muted); opacity:.7; line-height:1.55; flex-shrink:0; }
 .io-textarea { flex:1; min-height:260px; background:#090e1a; border:1px solid var(--border-l); border-radius:3px; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:11px; padding:10px 12px; outline:none; resize:none; line-height:1.65; transition:border-color .12s; }
 .io-textarea:focus { border-color:var(--accent); }
@@ -560,6 +591,10 @@ body.duping-mode .sq.disabled {
 .modal-btn.primary:hover { background:rgba(61,114,255,.12); }
 .modal-btn.success { border-color:#166534; color:#4ade80; }
 .modal-btn.success:hover { background:rgba(74,222,128,.1); }
+.modal-btn.cyan { border-color:#0e7490; color:#22d3ee; }
+.modal-btn.cyan:hover { background:rgba(34,211,238,.1); }
+.modal-btn.light-green { border-color:#22c55e; color:#86efac; }
+.modal-btn.light-green:hover { background:rgba(134,239,172,.1); }
 .io-error { font-family:'Share Tech Mono',monospace; font-size:9.5px; color:#f87171; background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.2); border-radius:3px; padding:7px 10px; max-height:80px; overflow-y:auto; white-space:pre-wrap; flex-shrink:0; }
 /* ─── Info panel footer ─── */
 .sb-info-hr { border:none; border-top:1px solid var(--border); margin:4px 0; }
@@ -618,13 +653,16 @@ body.duping-mode .sq.disabled {
 }
 /* In multi-select mode, all tiles become crosshair targets */
 body.multisel-mode .sq { cursor:crosshair !important; }
-body.multisel-mode .sq-del,
-body.multisel-mode .sq-move,
-body.multisel-mode .sq-dupe { display:none !important; }
+/* Each multi-selected tile shows its own Move/Copy/Delete buttons too, same as a normal
+   single selection — clicking any of them runs the multi-* version of that action (see the
+   click handlers). Hidden again once a destination pick is actually in progress, since at
+   that point the tiles are dimmed and the focus should be on choosing where to drop. */
+body.multi-sel-on:not(.multi-moving-mode):not(.multi-duping-mode) .sq.multi-sel.has-type ~ .sq-del,
+body.multi-sel-on:not(.multi-moving-mode):not(.multi-duping-mode) .sq.multi-sel.has-type ~ .sq-dupe,
+body.multi-sel-on:not(.multi-moving-mode):not(.multi-duping-mode) .sq.multi-sel.has-type ~ .sq-move { display:flex; }
 body.multisel-mode .port { pointer-events:none !important; }
-/* Disable wires and ports during any multi-select state */
-body.multisel-mode .wire, body.multisel-mode .obj-wire,
-body.multi-sel-on  .wire, body.multi-sel-on  .obj-wire  { pointer-events:none !important; }
+/* Ports stay non-interactive during multi-select (no new connections mid-selection), but
+   wires remain clickable — multi-select now supports clicking a wire to select it too. */
 body.multi-sel-on  .port, body.multi-sel-on  .obj-port  { pointer-events:none !important; }
 /* Multi-move: empty tiles light up blue as drop targets */
 body.multi-moving-mode .sq.multi-sel:not(.multi-drop-move):not(.multi-drop-invalid),
@@ -726,6 +764,13 @@ body.is-touch .tb-row-break          { display: block; width: 100%; height: 0; }
 body.is-touch.sim-mode    .bm-break  { display: none; }
 body.is-touch:not(.sim-mode) .sm-break { display: none; }
 body.is-touch .row1-sep { border-bottom: 1px solid var(--border-l); }
+/* ── Landscape header row-combining ── JS measures actual content width (since flex-wrap
+   only wraps vertically, never overflows horizontally, so it can't be detected from CSS
+   alone) and applies one of these two classes to <body>. Neither present = the normal
+   portrait multi-row layout. tb-break-major is the one break that still separates the two
+   halves in 2-row mode; every other row-break collapses away. */
+body.is-touch.landscape-1row .tb-row-break { display: none; }
+body.is-touch.landscape-2row .tb-row-break:not(.tb-break-major) { display: none; }
 /* Suppress selection glows and action buttons during a long-press countdown */
 body.lp-pending .sq         { animation: none !important; }
 body.lp-pending .sq-del,
@@ -757,6 +802,42 @@ body.sim-mode          #tb-sep-name-export { display: none; } /* build-mode sep 
    on the grid covers this on touch devices, so the header buttons are redundant there. */
 body.is-touch #tb-sep-zoom  { display: none; }
 body.is-touch #tb-zoom-unit { display: none; }
+
+/* ── Landscape header tiers (mobile only) ──────────────────────────────────
+   JS measures the real natural width of each row grouping and adds lt-1..lt-6 to <body>,
+   picking the most compact arrangement that actually fits. Hiding a row-break merely lets
+   that row's content flow into the next one — no HTML restructuring needed. See
+   updateLandscapeHeaderTier() for the full tier definitions and fit-testing order.
+   Tier 1: everything in one row.
+   Tier 2: row1 alone | rows 2+3+4+5 combined.
+   Tier 3: rows 1+2 combined | rows 3+4+5 combined.
+   Tier 4: row1 alone | rows 2+3 combined | rows 4+5 combined.
+   Tier 5: rows 1+2 combined | row 3 alone | rows 4+5 combined.
+   Tier 6: original 5 rows, unmerged (always fits — final fallback). */
+body.is-touch.lt-1 .tb-row-break { display: none !important; }
+body.is-touch.lt-2 #tb-break-r2-bm, body.is-touch.lt-2 #tb-break-r2-sm,
+body.is-touch.lt-2 #tb-break-r3-bm, body.is-touch.lt-2 #tb-break-r3-sm,
+body.is-touch.lt-2 #tb-break-r4-bm, body.is-touch.lt-2 #tb-break-r4-sm { display: none !important; }
+body.is-touch.lt-3 #tb-break-r1-bm, body.is-touch.lt-3 #tb-break-r1-sm,
+body.is-touch.lt-3 #tb-break-r3-bm, body.is-touch.lt-3 #tb-break-r3-sm,
+body.is-touch.lt-3 #tb-break-r4-bm, body.is-touch.lt-3 #tb-break-r4-sm { display: none !important; }
+body.is-touch.lt-4 #tb-break-r2-bm, body.is-touch.lt-4 #tb-break-r2-sm,
+body.is-touch.lt-4 #tb-break-r4-bm, body.is-touch.lt-4 #tb-break-r4-sm { display: none !important; }
+body.is-touch.lt-5 #tb-break-r1-bm, body.is-touch.lt-5 #tb-break-r1-sm,
+body.is-touch.lt-5 #tb-break-r4-bm, body.is-touch.lt-5 #tb-break-r4-sm { display: none !important; }
+/* Tier 6: no overrides — original 5-row layout (all breaks stay visible) */
+
+/* Merge separators: thin divider shown exactly where two originally-separate rows now
+   sit on the same line (i.e. precisely when that position's row-break is hidden above). */
+.tb-lt-sep { display: none; width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+/* Each separator is paired with one mode's break only — never show the other mode's copy */
+body.is-touch.sim-mode      .tb-lt-sep-bm { display: none !important; }
+body.is-touch:not(.sim-mode) .tb-lt-sep-sm { display: none !important; }
+body.is-touch.lt-1 .tb-lt-sep-r1, body.is-touch.lt-3 .tb-lt-sep-r1, body.is-touch.lt-5 .tb-lt-sep-r1 { display: block; }
+body.is-touch.lt-1 .tb-lt-sep-r2, body.is-touch.lt-2 .tb-lt-sep-r2, body.is-touch.lt-4 .tb-lt-sep-r2 { display: block; }
+body.is-touch.lt-1 .tb-lt-sep-r3, body.is-touch.lt-2 .tb-lt-sep-r3, body.is-touch.lt-3 .tb-lt-sep-r3 { display: block; }
+body.is-touch.lt-1 .tb-lt-sep-r4, body.is-touch.lt-2 .tb-lt-sep-r4, body.is-touch.lt-3 .tb-lt-sep-r4,
+body.is-touch.lt-4 .tb-lt-sep-r4, body.is-touch.lt-5 .tb-lt-sep-r4 { display: block; }
 
 /* ── Edge separators: hide seps at start/end of a flex row ── */
 body.is-touch:not(.sim-mode) .bm-start              { display: none; }
@@ -1072,12 +1153,12 @@ body.sim-mode #import-btn { display:none !important; }
   <div class="tb-logo-spacer"></div>
   <span class="top-logo" id="app-logo" title="View Changelog" style="cursor:pointer"><span style="color:#007582">Ardui</span><span style="color:#D4C400">Nodon</span> UI</span>
   <div class="tb-logo-right">
-    <span id="app-ver" style="font-size:0.55em;color:#888;font-weight:400;letter-spacing:.04em;vertical-align:middle">v1.2</span>
+    <span id="app-ver" style="font-size:0.55em;color:#888;font-weight:400;letter-spacing:.04em;vertical-align:middle">v1.3</span>
     <button id="lang-btn" class="top-btn" style="font-size:10px;padding:2px 7px;min-width:28px" title="Switch language / 言語切替" disabled>EN</button>
   </div>
 </div>
-<div class="tb-row-break bm-break row1-sep"></div>
-<div class="tb-row-break sm-break row1-sep"></div>
+<div class="tb-row-break bm-break row1-sep" id="tb-break-r1-bm"></div><div class="tb-lt-sep tb-lt-sep-r1 tb-lt-sep-bm"></div>
+<div class="tb-row-break sm-break row1-sep" id="tb-break-r1-sm"></div><div class="tb-lt-sep tb-lt-sep-r1 tb-lt-sep-sm"></div>
   <div class="top-sep" id="tb-sep-simmode"></div>
   <button class="top-btn mode-toggle" id="sim-mode-btn"><span class="mt-inner"><span class="mt-phantom" aria-hidden="true">Simulate<span class="desk-text"> Mode</span></span><span class="mt-normal">Build<span class="desk-text"> Mode</span></span><span class="mt-hover">→ Simulate</span></span></button>
   <!-- Sim Mode button: hidden in build mode (shown by enterSimMode) -->
@@ -1103,7 +1184,7 @@ body.sim-mode #import-btn { display:none !important; }
     <input type="number" id="zoom-input" class="top-num" min="0.2" max="2.5" step="0.1" value="1">
   </div>
   <!-- Undo/Redo: hidden in sim mode -->
-  <div class="tb-row-break bm-break"></div>
+  <div class="tb-row-break bm-break tb-break-major" id="tb-break-r2-bm"></div><div class="tb-lt-sep tb-lt-sep-r2 tb-lt-sep-bm"></div>
   <div class="top-sep bm-start" id="tb-sep-undo"></div>
   <button class="top-btn" id="undo-btn" title="Undo (Z)" data-i18n="ui.undo" data-i18n-title="ui.undo.title" disabled>↩ Undo</button>
   <button class="top-btn" id="redo-btn" title="Redo (R)" data-i18n="ui.redo" disabled>↪ Redo</button>
@@ -1114,14 +1195,14 @@ body.sim-mode #import-btn { display:none !important; }
   <!-- Simulation-mode-only controls (hidden in build mode) -->
   <div id="sim-controls">
     <div class="top-sep"></div>
-    <div class="tb-row-break sm-break"></div>
+    <div class="tb-row-break sm-break tb-break-major" id="tb-break-r2-sm"></div><div class="tb-lt-sep tb-lt-sep-r2 tb-lt-sep-sm"></div>
     <span class="top-lbl">SPEED</span>
     <input type="number" id="sim-speed-input" class="top-num" min="0" max="100" step="0.1" value="1">
     <div class="top-sep"></div>
     <button id="sim-start-btn"><span class="btn-lock-inner"><span class="btn-lock-sizer" aria-hidden="true" data-i18n="ui.simStart">▶ Start</span><span class="btn-lock-lbl" id="sim-start-lbl" data-i18n="ui.simStart">▶ Start</span></span></button>
     <button id="sim-pause-btn" disabled><span class="btn-lock-inner"><span class="btn-lock-sizer" aria-hidden="true" data-i18n="ui.simResume">▶ Resume</span><span class="btn-lock-lbl" id="sim-pause-lbl" data-i18n="ui.simPause">|| Pause</span></span></button>
     <div class="top-sep"></div>
-    <div class="tb-row-break sm-break"></div>
+    <div class="tb-row-break sm-break" id="tb-break-r3-sm"></div><div class="tb-lt-sep tb-lt-sep-r3 tb-lt-sep-sm"></div>
     <span class="sim-time-part" id="sim-time-t">t = 0.00s</span>
     <div class="top-sep"></div>
     <div class="top-unit">
@@ -1137,7 +1218,7 @@ body.sim-mode #import-btn { display:none !important; }
     </div>
   </div>
   <div class="top-gap"></div>
-  <div class="tb-row-break bm-break"></div>
+  <div class="tb-row-break bm-break" id="tb-break-r3-bm"></div><div class="tb-lt-sep tb-lt-sep-r3 tb-lt-sep-bm"></div>
   <div class="top-sep" id="tb-sep-sf-title"></div>
   <div class="top-unit">
     <span class="top-lbl" id="tb-lbl-title">TITLE</span>
@@ -1148,14 +1229,14 @@ body.sim-mode #import-btn { display:none !important; }
   <button class="top-btn" id="export-btn" data-i18n="ui.export">Export</button>
   <button class="top-btn" id="import-btn" data-i18n="ui.import">Import</button>
   <div class="top-sep" id="tb-sep-nc"></div>
-  <div class="tb-row-break bm-break"></div>
+  <div class="tb-row-break bm-break" id="tb-break-r4-bm"></div><div class="tb-lt-sep tb-lt-sep-r4 tb-lt-sep-bm"></div>
   <div class="tb-row-centered" id="tb-counter-row">
     <span class="top-stat" id="nodon-count">0 nodons</span>
     <div class="top-sep" id="tb-sep-wc"></div>
     <span class="top-stat" id="wire-count">0 connections</span>
   </div>
   <div class="top-sep" id="tb-sep-sftotal" style="display:none"></div>
-  <div class="tb-row-break sm-break"></div>
+  <div class="tb-row-break sm-break" id="tb-break-r4-sm"></div><div class="tb-lt-sep tb-lt-sep-r4 tb-lt-sep-sm"></div>
   <div class="tb-row-centered" id="tb-elapsed-row">
     <span class="top-stat" id="sim-sf-total" style="display:none">0 subframes elapsed</span>
   </div>
@@ -1475,7 +1556,11 @@ body.sim-mode #import-btn { display:none !important; }
       </div>
       <div id="sb-footer">
         <button class="sb-btn danger" id="desel-btn" data-i18n="ui.sb.deselect">Deselect</button>
-        <button class="sb-btn danger" id="del-nodon-btn">Delete</button>
+        <div class="sb-footer-row">
+          <button class="sb-btn sb-move" id="move-nodon-btn">⊕ Move</button>
+          <button class="sb-btn sb-dupe" id="dupe-nodon-btn">⧉ Copy</button>
+        </div>
+        <button class="sb-btn danger" id="del-nodon-btn">✕ Delete</button>
       </div>
     </div>
   </div>
@@ -1511,8 +1596,9 @@ body.sim-mode #import-btn { display:none !important; }
       </div>
       <div class="modal-footer">
         <span style="flex:1" id="io-spacer"></span>
-        <button class="modal-btn" id="io-load-ndnx-btn" style="display:none">Load .ndnx</button>
-        <button class="modal-btn" id="io-save-ndnx-btn" style="display:none">Save as .ndnx</button>
+        <button class="modal-btn cyan" id="io-load-ndnx-btn" style="display:none">Load .ndnx</button>
+        <button class="modal-btn cyan" id="io-save-ndnx-btn" style="display:none">Save as .ndnx</button>
+        <button class="modal-btn light-green" id="io-share-btn" style="display:none">Share as Link</button>
         <button class="modal-btn primary" id="io-action-btn">Copy</button>
         <button class="modal-btn" id="io-cancel-btn">Close</button>
       </div>
@@ -1527,6 +1613,34 @@ body.sim-mode #import-btn { display:none !important; }
       <button class="modal-close" id="changelog-close" title="Close">✕</button>
     </div>
     <div class="modal-body" style="overflow-y:auto;gap:14px">
+      <div class="sb-info-section">
+        <div class="sb-info-section-hd">V1.3 — 6/22/2026</div>
+        <div class="sb-info-row" style="opacity:.75;line-height:1.6">Landscape mobile header, expanded multi-select capabilities, link sharing, and several bug fixes.</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">Sharing</div>
+        <div class="sb-info-row">Added "Share as Link" in the Export dialog which copies a URL with the grid encoded into it; opening that link automatically imports the grid</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">Multi-select</div>
+        <div class="sb-info-row">Duplicating Nodons which share connections will also duplicate their connections</div>
+        <div class="sb-info-row">Individual connections can now be selected by clicking them directly, or when a freeform-drawn loop encloses both ends of a connection; this will duplicate the connection for any newly duplicated Nodons</div>
+        <div class="sb-info-row">Move, Copy, and Delete buttons now appear directly on each multi-selected tile (the same buttons used for single selection), and clicking any of them runs the multi-version of that action</div>
+        <div class="sb-info-row">Loop detection slightly improved (also applied for Delete Mode)</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">Mobile</div>
+        <div class="sb-info-row">Header now adapts to landscape orientation of varying widths</div>
+        <div class="sb-info-row">Port long-press detection for making connections greatly improved</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">Build Mode</div>
+        <div class="sb-info-row">Sidebar footer (when a Nodon is selected) now include Move and Copy buttons as well</div>
+        <div class="sb-info-row">Selecting an empty tile now shows only Deselect in the footer</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">UI</div>
+        <div class="sb-info-row">Restyled the scrollbars to match the app's color scheme</div>
+        <div class="sb-info-row">Fixed the Notes field of Nodons rendering unnecessarily tall sometimes</div>
+      </div>
+
+      <hr class="sb-info-hr">
+
       <div class="sb-info-section">
         <div class="sb-info-section-hd">V1.2 — 6/20/2026</div>
         <div class="sb-info-row" style="opacity:.75;line-height:1.6">Mobile-first header overhaul, full touch-gesture support, and UI polish across both desktop and mobile.</div>
@@ -3489,6 +3603,11 @@ let moveMode = null;   // {nid} when move mode active, else null
 let dupeMode = null;   // {nid} when dupe mode active, else null
 let msActive   = false;
 let msNids     = [];
+// Wires explicitly added to the multi-selection by clicking them directly (in multi-select
+// mode, or with Ctrl/Cmd held). Index-based, like selWire/selObjWire — kept in sync with
+// wires/objWires by deleteWire()/deleteObjWire() the same way selWire/selObjWire are.
+let msWireIdx    = new Set();
+let msObjWireIdx = new Set();
 // Free-draw path state for multi-select mode (mirrors delete mode)
 let msDragDragging         = false;
 let msDragJustCompleted    = false;
@@ -4005,16 +4124,28 @@ function buildGrid() {
       sq.appendChild(simOvEl);
       const delBtn = document.createElement('button');
       delBtn.className = 'sq-del'; delBtn.textContent = t('ui.tile.delete'); delBtn.title = t('ui.tile.delete.title');
-      delBtn.addEventListener('click', e=>{ e.stopPropagation(); deleteNodon(nid); });
+      delBtn.addEventListener('click', e=>{
+        e.stopPropagation();
+        if (msNids.includes(nid)) { doMultiDelete(); mobClose(); return; }
+        deleteNodon(nid);
+      });
 
       const dupeBtn = document.createElement('button');
       dupeBtn.className = 'sq-dupe'; dupeBtn.textContent = t('ui.tile.copy'); dupeBtn.title = t('ui.tile.copy.title');
-      dupeBtn.addEventListener('click', e=>{ e.stopPropagation(); enterDupeMode(nid); });
+      dupeBtn.addEventListener('click', e=>{
+        e.stopPropagation();
+        if (msNids.includes(nid)) { enterMultiDupeMode(); mobClose(); return; }
+        enterDupeMode(nid);
+      });
 
       const moveBtn = document.createElement('button');
       moveBtn.className = 'sq-move'; moveBtn.title = 'Move Nodon';
       moveBtn.textContent = '⊕';
-      moveBtn.addEventListener('click', e=>{ e.stopPropagation(); enterMoveMode(nid); });
+      moveBtn.addEventListener('click', e=>{
+        e.stopPropagation();
+        if (msNids.includes(nid)) { enterMultiMoveMode(); mobClose(); return; }
+        enterMoveMode(nid);
+      });
 
       cell.appendChild(sq);
       cell.appendChild(delBtn);
@@ -4222,6 +4353,8 @@ function redraw(newIdx=-1) {
       path.classList.add('wire-sel');
       selMidX=(x1+x2)/2; selMidY=(y1+y2)/2; selRendered=true;
     }
+    // Part of the multi-selection if explicitly clicked, or both endpoints are selected Nodons
+    if (msWireIdx.has(i) || (msNids.includes(w.from) && msNids.includes(w.to))) path.classList.add('multi-sel');
     path.style.pointerEvents='stroke';
     if (i===newIdx) {
       requestAnimationFrame(()=>{
@@ -4231,7 +4364,7 @@ function redraw(newIdx=-1) {
         path.style.animation='draw-in .35s ease-out forwards';
       });
     }
-    path.addEventListener('click',e=>{ const pt=portAtPoint(e.clientX,e.clientY); if(pt){pt.click();return;} e.stopPropagation(); if(deleteMode){if(delDragJustCompleted)return;saveHistory();deleteWire(i);setStatus('Wire deleted.');return;} selectWire(i); });
+    path.addEventListener('click',e=>{ const pt=portAtPoint(e.clientX,e.clientY); if(pt){pt.click();return;} e.stopPropagation(); if(msActive||e.ctrlKey||e.metaKey){toggleMultiWireSel(i,'signal');return;} if(deleteMode){if(delDragJustCompleted)return;saveHistory();deleteWire(i);setStatus('Wire deleted.');return;} selectWire(i); });
     svgEl.appendChild(path);
     fe.style.boxShadow='0 0 7px rgba(255,60,180,.7)';
     te.style.boxShadow='0 0 7px rgba(255,60,180,.7)';
@@ -4264,8 +4397,9 @@ function redraw(newIdx=-1) {
     path.dataset.owdx = i;  // index for delete-mode hit detection
     const isSel=(i===selObjWire);
     if (isSel) { path.classList.add('wire-sel'); selMidX=(x1+x2)/2; selMidY=(y1+y2)/2; selRendered=true; }
+    if (msObjWireIdx.has(i) || (msNids.includes(w.from) && msNids.includes(w.to))) path.classList.add('multi-sel');
     path.style.pointerEvents='stroke';
-    path.addEventListener('click',e=>{ const pt=portAtPoint(e.clientX,e.clientY); if(pt){pt.click();return;} e.stopPropagation(); if(deleteMode){if(delDragJustCompleted)return;saveHistory();deleteObjWire(i);setStatus('Object wire deleted.');return;} selectObjWire(i); });
+    path.addEventListener('click',e=>{ const pt=portAtPoint(e.clientX,e.clientY); if(pt){pt.click();return;} e.stopPropagation(); if(msActive||e.ctrlKey||e.metaKey){toggleMultiWireSel(i,'obj');return;} if(deleteMode){if(delDragJustCompleted)return;saveHistory();deleteObjWire(i);setStatus('Object wire deleted.');return;} selectObjWire(i); });
     svgEl.appendChild(path);
     fe.style.boxShadow='0 0 7px rgba(59,130,246,.7)';
     te.style.boxShadow='0 0 7px rgba(59,130,246,.7)';
@@ -4464,6 +4598,7 @@ document.addEventListener('mousemove', e => {
         _syncPType(dragMove.nid);
         document.getElementById('p-comment').value=nd.comment; resizeComment();
         document.getElementById('p-comment-row').style.display = nd.type ? '' : 'none';
+        updateSbFooterButtons(!!nd.type);
         renderParamInputs(dragMove.nid); renderNodonBrowser(dragMove.nid); renderConnList();
       }
       const name = NODON_TYPES[nodes[dragMove.nid]?.type]?.name || 'Nodon';
@@ -4540,16 +4675,43 @@ document.addEventListener('mouseup', e => {
           const r = sq.getBoundingClientRect();
           if (pointInPolygon(r.left + r.width / 2, r.top + r.height / 2, loopPoly2)) nodesInLoop.push(nid);
         }
+        // Wires whose two specific ports both fall inside the drawn loop are selected too,
+        // independent of whether their connected Nodons' centers are themselves inside it —
+        // lets a tight loop drawn around just a connection select it directly.
+        const wiresInLoop = [];
+        wires.forEach((w, wi) => {
+          const outEl = getPort('out', w.from, w.outPort ?? 0);
+          const inEl  = getPort('in',  w.to,   w.inPort  ?? 0);
+          if (!outEl || !inEl) return;
+          const r1 = outEl.getBoundingClientRect(), r2 = inEl.getBoundingClientRect();
+          if (pointInPolygon(r1.left + r1.width/2, r1.top + r1.height/2, loopPoly2) &&
+              pointInPolygon(r2.left + r2.width/2, r2.top + r2.height/2, loopPoly2)) wiresInLoop.push(wi);
+        });
+        const objWiresInLoop = [];
+        objWires.forEach((w, wi) => {
+          const botEl = getObjPort('bot', w.from);
+          const topEl = getObjPort('top', w.to);
+          if (!botEl || !topEl) return;
+          const r1 = botEl.getBoundingClientRect(), r2 = topEl.getBoundingClientRect();
+          if (pointInPolygon(r1.left + r1.width/2, r1.top + r1.height/2, loopPoly2) &&
+              pointInPolygon(r2.left + r2.width/2, r2.top + r2.height/2, loopPoly2)) objWiresInLoop.push(wi);
+        });
         if (e.ctrlKey || e.metaKey) {
-          // Ctrl held: toggle each Nodon inside the loop in/out of the selection
+          // Ctrl held: toggle each Nodon/wire inside the loop in/out of the selection
           nodesInLoop.forEach(nid => msToggleNodon(nid));
+          wiresInLoop.forEach(wi => { if (msWireIdx.has(wi)) msWireIdx.delete(wi); else msWireIdx.add(wi); });
+          objWiresInLoop.forEach(wi => { if (msObjWireIdx.has(wi)) msObjWireIdx.delete(wi); else msObjWireIdx.add(wi); });
         } else {
           // No modifier: clear the current selection and select only the loop contents
           clearMultiHighlights();
           msNids = [];
+          msWireIdx.clear(); msObjWireIdx.clear();
           nodesInLoop.forEach(nid => { msNids.push(nid); const sq = getSquare(nid); if (sq) sq.classList.add('multi-sel'); });
+          wiresInLoop.forEach(wi => msWireIdx.add(wi));
+          objWiresInLoop.forEach(wi => msObjWireIdx.add(wi));
         }
         msUpdateSidebar();
+        redraw();
       }
       // Non-loop drag: do nothing
     }
@@ -5056,8 +5218,19 @@ function deleteWire(i) {
   saveHistory();
   if (selWire === i) selWire = -1;
   else if (selWire > i) selWire--;
+  msWireIdx.delete(i);
+  msWireIdx = new Set([...msWireIdx].map(x => x > i ? x - 1 : x));
   wires.splice(i,1); redraw();
   setStatus(`Wire removed. ${wires.length} connection${wires.length!==1?'s':''} remain.`);
+}
+// Toggle a wire's membership in the explicit multi-select wire selection (click-to-select,
+// either while actively multi-selecting or with Ctrl/Cmd held — mirrors ctrlToggleMultiSel's
+// behavior for Nodons).
+function toggleMultiWireSel(i, kind) {
+  const set = kind === 'obj' ? msObjWireIdx : msWireIdx;
+  if (set.has(i)) set.delete(i); else set.add(i);
+  document.body.classList.add('multi-sel-on');
+  redraw();
 }
 function selectWire(i) {
   if (pend) return;
@@ -5079,6 +5252,8 @@ function deleteObjWire(i) {
   saveHistory();
   if (selObjWire === i) selObjWire = -1;
   else if (selObjWire > i) selObjWire--;
+  msObjWireIdx.delete(i);
+  msObjWireIdx = new Set([...msObjWireIdx].map(x => x > i ? x - 1 : x));
   objWires.splice(i,1); redraw();
   setStatus(`Object connection removed. ${objWires.length} remain.`);
 }
@@ -5118,6 +5293,7 @@ function deleteNodon(nid) {
     _syncPType(nid);
     const _pc=document.getElementById('p-comment'); _pc.value=''; _pc.style.height='28px';
     document.getElementById('p-comment-row').style.display = 'none';
+    updateSbFooterButtons(false);
     document.getElementById('nodon-browser').style.display = 'none'; // reset before re-render
     renderParamInputs(nid);
     renderNodonBrowser(nid);
@@ -5125,6 +5301,13 @@ function deleteNodon(nid) {
   }
   redraw(); // also repositions / hides wire-del-btn
   setStatus(`Nodon at ${fmt(nid)} deleted.`);
+}
+// Move/Copy/Delete only make sense for an actual Nodon — hidden for an empty tile,
+// where Deselect is the only relevant action.
+function updateSbFooterButtons(hasType) {
+  const display = hasType ? '' : 'none';
+  document.querySelector('#sb-footer .sb-footer-row').style.display = display;
+  document.getElementById('del-nodon-btn').style.display = display;
 }
 function enterMoveMode(nid) {
   if (moveMode) cancelMoveMode();
@@ -5193,6 +5376,7 @@ function doMoveNodon(fromNid, toNid) {
     _syncPType(toNid);
     document.getElementById('p-comment').value=nd.comment; resizeComment();
     document.getElementById('p-comment-row').style.display = nd.type ? '' : 'none';
+    updateSbFooterButtons(!!nd.type);
     renderParamInputs(toNid);
     renderConnList();
   } else {
@@ -5289,6 +5473,7 @@ function onSquareClick(nid, e) {
     if (msDragJustCompleted) return; // drag just finished; swallow the residual click
     msToggleNodon(nid);
     msUpdateSidebar();
+    redraw();
     return;
   }
   // ── Ctrl+click: add/remove individual Nodons from multi-selection ──
@@ -5346,6 +5531,7 @@ function onSquareClick(nid, e) {
   _syncPType(nid);
   document.getElementById('p-comment').value=nd.comment; resizeComment();
   document.getElementById('p-comment-row').style.display = nd.type ? '' : 'none';
+  updateSbFooterButtons(!!nd.type);
   renderParamInputs(nid);
   renderNodonBrowser(nid);
   renderConnList();
@@ -6507,20 +6693,49 @@ function renderParamInputs(nid) {
 /* ═══════════════════════════════════════════════════════════════
    PROPERTY INPUTS
 ═══════════════════════════════════════════════════════════════ */
-// Auto-grow the Notes textarea to fit its content. On mobile, the sidebar may still be
-// mid-transition (its CSS width animates 0 → var(--sb-w) when mobOpen() runs) at the moment
-// a Nodon is selected, since that transition is triggered by an async MutationObserver
-// microtask that fires *after* the synchronous selection code that sets the comment value.
-// Measuring scrollHeight while the textarea is still at/near zero width gives a bogus
-// (very tall) result that never gets corrected. To avoid all of that: always snap to the
-// short default instantly, then measure for real only once the transition has had time to
-// finish, so it only grows when the content has actually wrapped onto multiple lines.
+// Auto-grow the Notes textarea to fit its content. The sidebar's width can be mid-transition
+// at the moment a Nodon is selected — on mobile via mobOpen() (triggered by an async
+// MutationObserver microtask that fires *after* the synchronous selection code runs), and on
+// desktop via the peek-tab's manual collapse/expand. Measuring scrollHeight while the
+// textarea is still narrow (or zero-width) gives a bogus tall result that never self-corrects.
+// Always snap to the short default instantly, then measure for real only once the sidebar's
+// width has actually settled, so it only grows when the content has actually wrapped.
 function resizeComment() {
   const _pc = document.getElementById('p-comment');
   _pc.style.height = '28px';  // safe short default — never visibly "stuck tall"
   const grow = () => { _pc.style.height = '1px'; _pc.style.height = (_pc.scrollHeight || 28) + 'px'; };
-  if (document.body.classList.contains('is-touch')) setTimeout(grow, 210); // outlasts the .2s sidebar transition
-  else grow();                                                              // desktop sidebar never animates width
+
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar.getBoundingClientRect().width >= 50) { grow(); return; } // already settled — measure now
+
+  // Sidebar is currently collapsed or mid-transition: wait for its width transition to
+  // actually finish before measuring, rather than guessing a fixed delay.
+  let done = false;
+  const onEnd = ev => {
+    if (ev.target !== sidebar || ev.propertyName !== 'width' || done) return;
+    done = true;
+    sidebar.removeEventListener('transitionend', onEnd);
+    if (sidebar.getBoundingClientRect().width >= 50) grow(); // re-check: it may have closed again
+  };
+  sidebar.addEventListener('transitionend', onEnd);
+  // Safety net in case no transition ever fires (e.g. reduced-motion settings). Re-checks
+  // the width rather than blindly measuring — if the sidebar is still genuinely collapsed
+  // at this point, leave the safe short default alone instead of measuring against a bogus
+  // zero width (that's what caused this same "stuck tall" bug in the first place). If the
+  // sidebar later expands without a fresh selection, resizeCommentIfVisible() (called from
+  // both mobOpen() and the desktop peek-tab toggle) gives it another chance to measure.
+  setTimeout(() => {
+    if (done) return;
+    done = true;
+    sidebar.removeEventListener('transitionend', onEnd);
+    if (sidebar.getBoundingClientRect().width >= 50) grow();
+  }, 300);
+}
+// Called whenever the sidebar expands for any reason unrelated to a fresh selection (mobile
+// auto-open, or the desktop/mobile peek-tab toggle) — gives the Notes field another chance
+// to size correctly if it was left at the safe default while genuinely collapsed.
+function resizeCommentIfVisible() {
+  if (sel && nodes[sel]?.type) resizeComment();
 }
 
 document.getElementById('p-comment').addEventListener('input',function(){
@@ -6682,7 +6897,7 @@ function enterMultiSelMode() {
   document.body.classList.add('multisel-mode');
   document.getElementById('multisel-btn').classList.add('ms-active');
   msUpdateSidebar();
-  setStatus('Multi-select: click Nodons to toggle, or draw a loop to select/deselect enclosed Nodons.', true);
+  setStatus('Multi-select: click Nodons or Connections to toggle, or draw a loop to select/deselect enclosed Nodons or Connections.', true);
 }
 
 function cancelMultiSelMode() {
@@ -6694,10 +6909,12 @@ function cancelMultiSelMode() {
   msDragHasSelfIntersection = false;
   if (msDragCutSVG) { msDragCutSVG.setAttribute('d', ''); msDragCutSVG.classList.remove('msel-loop-closing'); }
   msActive = false; msNids = [];
+  msWireIdx.clear(); msObjWireIdx.clear();
   document.body.classList.remove('multisel-mode', 'multi-sel-on');
   document.getElementById('multisel-btn').classList.remove('ms-active');
   hideMultiSidebar();
   setStatus('Multi-select cancelled.');
+  redraw();
 }
 
 /* ── Multi-delete ── */
@@ -6896,11 +7113,68 @@ function doMultiDupe(anchorNid) {
     nodes[dst].type=nodes[nid].type; nodes[dst].params={...nodes[nid].params}; nodes[dst].comment=nodes[nid].comment;
     refreshSquareVisual(dst);
   });
+  // Only touch connections that are themselves part of the selection — either explicitly
+  // clicked (msWireIdx/msObjWireIdx) or auto-included because both endpoints are selected
+  // Nodons. A connection merely touching a selected Nodon, without being selected itself,
+  // is left completely alone.
+  const srcNidSet = new Set(nids);
+  let copiedConns = 0, skippedConns = 0;
+  wires.slice().forEach((w, i) => {
+    const fromSel = srcNidSet.has(w.from), toSel = srcNidSet.has(w.to);
+    const inSelection = msWireIdx.has(i) || (fromSel && toSel);
+    if (!inSelection) return;
+    if (fromSel && toSel) {
+      wires.push({ from: nidMap.get(w.from), to: nidMap.get(w.to), outPort: w.outPort, inPort: w.inPort });
+      copiedConns++;
+    } else if (fromSel || toSel) {
+      // Exactly one endpoint selected: recreate the connection between the duplicate and
+      // the original external Nodon, but only if doing so wouldn't exceed that external
+      // port's connection limit (16 for signal in/out ports). Checked against the live
+      // wires array so several selected Nodons feeding the same external port are each
+      // counted as that port progressively fills up.
+      const newFrom = fromSel ? nidMap.get(w.from) : w.from;
+      const newTo   = fromSel ? w.to               : nidMap.get(w.to);
+      const limitNid  = fromSel ? w.to   : w.from;
+      const limitPort = fromSel ? (w.inPort??0) : (w.outPort??0);
+      const limitSide = fromSel ? 'to' : 'from';
+      const count = wires.filter(x => x[limitSide]===limitNid && (limitSide==='to' ? (x.inPort??0) : (x.outPort??0))===limitPort).length;
+      if (count >= 16) { skippedConns++; }
+      else { wires.push({ from: newFrom, to: newTo, outPort: w.outPort, inPort: w.inPort }); copiedConns++; }
+    }
+    // Neither endpoint selected (wire was explicitly clicked but isn't attached to any
+    // duplicated Nodon on either side): nothing meaningful to recreate — no-op.
+  });
+  objWires.slice().forEach((w, i) => {
+    const fromSel = srcNidSet.has(w.from), toSel = srcNidSet.has(w.to);
+    const inSelection = msObjWireIdx.has(i) || (fromSel && toSel);
+    if (!inSelection) return;
+    if (fromSel && toSel) {
+      objWires.push({ from: nidMap.get(w.from), to: nidMap.get(w.to) });
+      copiedConns++;
+    } else if (fromSel || toSel) {
+      // fromSel: bottom port duplicated, keep the same external top-port Nodon — check
+      // that external top-port's limit (8). toSel: top port duplicated, keep the same
+      // external bottom-port Nodon — check that Nodon's own bottom-port limit.
+      if (fromSel) {
+        const count = objWires.filter(x => x.to===w.to).length;
+        if (count >= 8) { skippedConns++; }
+        else { objWires.push({ from: nidMap.get(w.from), to: w.to }); copiedConns++; }
+      } else {
+        const count = objWires.filter(x => x.from===w.from).length;
+        if (count >= botPortLimit(w.from)) { skippedConns++; }
+        else { objWires.push({ from: w.from, to: nidMap.get(w.to) }); copiedConns++; }
+      }
+    }
+  });
   cancelMultiDupe();
   cancelMultiSelMode();
   deselect();
   redraw();
-  setStatus(`Copied ${nids.length} Nodon${nids.length!==1?'s':''}.`);
+  let msg = `Copied ${nids.length} Nodon${nids.length!==1?'s':''}`;
+  if (copiedConns)  msg += ` and ${copiedConns} connection${copiedConns!==1?'s':''}`;
+  msg += '.';
+  if (skippedConns) msg += ` (${skippedConns} connection${skippedConns!==1?'s':''} skipped — port limit reached.)`;
+  setStatus(msg);
 }
 
 function refreshMultiSidebar(hint) {
@@ -6935,7 +7209,7 @@ function ctrlToggleMultiSel(nid) {
     msNids.splice(idx, 1);
     const sq = getSquare(nid);
     if (sq) sq.classList.remove('multi-sel', 'multi-corner');
-    if (msNids.length === 0) { hideMultiSidebar(); document.body.classList.remove('multi-sel-on'); setStatus('Selection cleared.'); return; }
+    if (msNids.length === 0) { hideMultiSidebar(); document.body.classList.remove('multi-sel-on'); setStatus('Selection cleared.'); redraw(); return; }
   } else {
     // Add to set
     msNids.push(nid);
@@ -6946,6 +7220,7 @@ function ctrlToggleMultiSel(nid) {
   document.body.classList.add('multi-sel-on');
   refreshMultiSidebar(t('ui.ms.hint.adjust'));
   setStatus(`${msNids.length} Nodon${msNids.length!==1?'s':''} selected.`);
+  redraw();
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -7012,6 +7287,7 @@ function _applyNodonTypeKey(typeKey) {
   }
   document.getElementById('sb-title').textContent = `${NODON_TYPES[nodes[sel]?.type]?.name ?? 'Node'} ${fmt(sel)}`;
   document.getElementById('p-comment-row').style.display = typeKey ? '' : 'none';
+  updateSbFooterButtons(!!typeKey);
   _syncPType(sel);
   renderNodonBrowser(sel);
   refreshSquareVisual(sel);
@@ -7178,8 +7454,14 @@ document.getElementById('desel-btn').addEventListener('click', () => {
   setStatus('Deselected.');
   mobClose();
 });
+document.getElementById('move-nodon-btn').addEventListener('click', () => {
+  if (sel && nodes[sel]?.type) { enterMoveMode(sel); mobClose(); }
+});
+document.getElementById('dupe-nodon-btn').addEventListener('click', () => {
+  if (sel && nodes[sel]?.type) { enterDupeMode(sel); mobClose(); }
+});
 document.getElementById('del-nodon-btn').addEventListener('click', () => {
-  if (sel && nodes[sel]?.type) { saveHistory(); deleteNodon(sel); setStatus('Nodon deleted.'); }
+  if (sel && nodes[sel]?.type) { saveHistory(); deleteNodon(sel); setStatus('Nodon deleted.'); mobClose(); }
 });
 /* ═══════════════════════════════════════════════════════════════
    DELETE MODE
@@ -7215,7 +7497,13 @@ function seg2DIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
   if (Math.abs(cross) < 1e-10) return null; // parallel / collinear
   const t = ((cx - ax) * d2y - (cy - ay) * d2x) / cross;
   const u = ((cx - ax) * d1y - (cy - ay) * d1x) / cross;
-  if (t > 0 && t < 1 && u > 0 && u < 1) return { x: ax + t * d1x, y: ay + t * d1y };
+  // Inclusive bounds (with a small epsilon) rather than strict: a real loop-closing
+  // gesture often has its crossing point land very close to — or exactly on — an
+  // earlier recorded point, especially during slow/precise mouse movement. A strict
+  // 0 < t < 1 check misses that case intermittently depending on exact pixel sampling,
+  // which is what made the loop feel like it only "sometimes" closes.
+  const EPS = 1e-6;
+  if (t >= -EPS && t <= 1 + EPS && u >= -EPS && u <= 1 + EPS) return { x: ax + t * d1x, y: ay + t * d1y };
   return null;
 }
 
@@ -7572,6 +7860,7 @@ function openExportModal() {
   ioActionBtn.className   = 'modal-btn success';
   document.getElementById('io-save-ndnx-btn').style.display = '';
   document.getElementById('io-load-ndnx-btn').style.display = 'none';
+  document.getElementById('io-share-btn').style.display = '';
 
   // Build context-sensitive export warnings
   const warningsEl = document.getElementById('io-warnings');
@@ -7614,6 +7903,7 @@ function openImportModal() {
   ioActionBtn.className   = 'modal-btn primary';
   document.getElementById('io-save-ndnx-btn').style.display = 'none';
   document.getElementById('io-load-ndnx-btn').style.display = '';
+  document.getElementById('io-share-btn').style.display = 'none';
   ioModal.style.display   = 'flex';
   ioTextarea.focus();
 }
@@ -7631,6 +7921,73 @@ function saveAsNdnx() {
 }
 
 document.getElementById('io-save-ndnx-btn').addEventListener('click', saveAsNdnx);
+
+/* ── Share as Link ──────────────────────────────────────────────────────
+   Encodes the exported text into the URL's ?d= query parameter so a grid can be shared
+   by URL alone — loading that link auto-imports it (see the bottom of this script).
+   Compressed with CompressionStream when available (most modern browsers) to keep links
+   shorter, with a raw-bytes fallback for browsers that lack it; a one-character prefix
+   on the encoded payload tells the decoder which form it's in, so a link encoded by one
+   browser still decodes correctly when opened in another that differs in support. */
+function bytesToBase64Url(bytes) {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function base64UrlToBytes(b64url) {
+  let s = b64url.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  const binary = atob(s);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+async function encodeGridForLink(text) {
+  const raw = new TextEncoder().encode(text);
+  if (window.CompressionStream) {
+    try {
+      const cs = new CompressionStream('deflate-raw');
+      const writer = cs.writable.getWriter();
+      writer.write(raw);
+      writer.close();
+      const buf = await new Response(cs.readable).arrayBuffer();
+      return '1' + bytesToBase64Url(new Uint8Array(buf));
+    } catch (_) { /* fall through to the uncompressed form below */ }
+  }
+  return '0' + bytesToBase64Url(raw);
+}
+async function decodeGridFromLink(encoded) {
+  const isCompressed = encoded[0] === '1';
+  const bytes = base64UrlToBytes(encoded.slice(1));
+  if (!isCompressed) return new TextDecoder().decode(bytes);
+  if (!window.DecompressionStream) throw new Error('This browser cannot open compressed share links.');
+  const ds = new DecompressionStream('deflate-raw');
+  const writer = ds.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  const buf = await new Response(ds.readable).arrayBuffer();
+  return new TextDecoder().decode(buf);
+}
+document.getElementById('io-share-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('io-share-btn');
+  const original = 'Share as Link';
+  btn.disabled = true;
+  try {
+    const encoded = await encodeGridForLink(generateExport());
+    const url = `https://zertolurian.github.io/gbg-arduinodon/?d=${encoded}`;
+    const succeed = () => {
+      btn.textContent = '✓ Link Copied!';
+      setTimeout(() => { if (btn.textContent === '✓ Link Copied!') btn.textContent = original; }, 1500);
+    };
+    const fail = () => { setStatus('Could not copy automatically. Link: ' + url, true); };
+    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url).then(succeed, fail);
+    else fail();
+  } catch (e) {
+    setStatus('Could not generate a share link in this browser.', true);
+  } finally {
+    btn.disabled = false;
+  }
+});
 
 document.getElementById('io-load-ndnx-btn').addEventListener('click', () => {
   document.getElementById('ndnx-file-input').click();
@@ -7855,6 +8212,7 @@ function enterSimMode() {
   // Seed overlays and mark clickable nodons
   refreshAllSimOverlays();
   setStatus('Simulation Mode active. Press ▶ Start to begin.');
+  if (isTouchDevice()) updateLandscapeHeaderTier();
 }
 
 function exitSimMode() {
@@ -7883,6 +8241,7 @@ function exitSimMode() {
   });
 
   setStatus('Returned to Build Mode.');
+  if (isTouchDevice()) updateLandscapeHeaderTier();
 }
 
 function _resetSimState() {
@@ -10140,6 +10499,7 @@ function mobOpen() {
   if (_sb.classList.contains('mob-open')) return;
   _sb.classList.add('mob-open');
   document.getElementById('mob-sidebar-tab').textContent = '❯';
+  resizeCommentIfVisible();
 }
 function mobClose() {
   if (!document.body.classList.contains('is-touch')) return;
@@ -10158,6 +10518,101 @@ function mobClose() {
 function isTouchDevice() {
   return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 }
+
+/* ── Landscape header tiers (mobile only) ──────────────────────────────────
+   Picks the most compact header layout that actually fits, by measuring real natural
+   widths (not guessed breakpoints) — see the CSS comment above the .lt-1..lt-6 rules
+   for how each tier's grouping is achieved (hiding specific row-break elements).
+   Tier 1: everything in one row.
+   Tier 2: row1 alone | rows 2+3+4+5 combined.
+   Tier 3: rows 1+2 combined | rows 3+4+5 combined.
+   Tier 4: row1 alone | rows 2+3 combined | rows 4+5 combined.
+   Tier 5: rows 1+2 combined | row 3 alone | rows 4+5 combined.
+   Tier 6 (no class): original 5-row layout — guaranteed-fits final fallback. */
+
+// Flatten display:contents wrappers (.tb-row-centered, #sim-controls) so the row-break
+// elements and the row content around them are all siblings in one ordered list, exactly
+// matching how they actually participate in #topbar's own flex-wrap.
+function getTopbarFlatChildren() {
+  const out = [];
+  function walk(el) {
+    for (const child of el.children) {
+      const cs = getComputedStyle(child);
+      if (cs.display === 'none') continue;
+      if (cs.display === 'contents') { walk(child); continue; }
+      out.push(child);
+    }
+  }
+  walk(document.getElementById('topbar'));
+  return out;
+}
+
+// Temporarily relocates a set of real elements into an off-screen nowrap flex probe to
+// measure their combined natural width, then restores each to its exact original position
+// (via a per-element comment-node marker) before returning — synchronous, so there's no
+// visible flicker and no risk of losing track of an element's correct original parent/slot.
+function measureNaturalWidth(elements) {
+  if (!elements.length) return 0;
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute; visibility:hidden; left:-99999px; top:0; ' +
+    'display:flex; flex-wrap:nowrap; align-items:center; gap:10px;';
+  document.body.appendChild(probe);
+  const restore = elements.map(el => {
+    const marker = document.createComment('');
+    el.parentNode.insertBefore(marker, el);
+    probe.appendChild(el);
+    return [marker, el];
+  });
+  const w = probe.scrollWidth;
+  restore.forEach(([marker, el]) => { marker.parentNode.replaceChild(el, marker); });
+  probe.remove();
+  return w;
+}
+
+function updateLandscapeHeaderTier() {
+  document.body.classList.remove('lt-1', 'lt-2', 'lt-3', 'lt-4', 'lt-5', 'lt-6');
+  if (!isTouchDevice()) return;
+  if (!window.matchMedia('(orientation: landscape)').matches) return;
+
+  const tb = document.getElementById('topbar');
+  const availW = tb.clientWidth;
+  if (!availW) return;
+
+  const suffix = document.body.classList.contains('sim-mode') ? 'sm' : 'bm';
+  const r1 = document.getElementById(`tb-break-r1-${suffix}`);
+  const r2 = document.getElementById(`tb-break-r2-${suffix}`);
+  const r3 = document.getElementById(`tb-break-r3-${suffix}`);
+  const r4 = document.getElementById(`tb-break-r4-${suffix}`);
+
+  const flat = getTopbarFlatChildren();
+  const i1 = flat.indexOf(r1), i2 = flat.indexOf(r2), i3 = flat.indexOf(r3), i4 = flat.indexOf(r4);
+  if (i1 < 0 || i2 < 0 || i3 < 0 || i4 < 0) return; // structure mismatch safety net — tier 6
+
+  const seg1 = flat.slice(0, i1), seg2 = flat.slice(i1 + 1, i2), seg3 = flat.slice(i2 + 1, i3),
+        seg4 = flat.slice(i3 + 1, i4), seg5 = flat.slice(i4 + 1);
+  // Each combined row inserts one ~10px merge separator per internal break it swallows —
+  // mergeCount accounts for that so a tier isn't picked only to overflow once the
+  // separator(s) actually render.
+  const MERGE_SEP_WIDTH = 10;
+  const fits = (mergeCount, ...segGroups) =>
+    measureNaturalWidth(segGroups.flat()) + mergeCount * MERGE_SEP_WIDTH <= availW;
+
+  if (fits(4, seg1, seg2, seg3, seg4, seg5)) { document.body.classList.add('lt-1'); return; }
+  if (fits(0, seg1) && fits(3, seg2, seg3, seg4, seg5)) { document.body.classList.add('lt-2'); return; }
+  if (fits(1, seg1, seg2) && fits(2, seg3, seg4, seg5)) { document.body.classList.add('lt-3'); return; }
+  if (fits(0, seg1) && fits(1, seg2, seg3) && fits(1, seg4, seg5)) { document.body.classList.add('lt-4'); return; }
+  if (fits(1, seg1, seg2) && fits(0, seg3) && fits(1, seg4, seg5)) { document.body.classList.add('lt-5'); return; }
+  document.body.classList.add('lt-6'); // original 5 rows — always fits, final fallback
+}
+
+let _ltDebounce = null;
+function scheduleLandscapeTierUpdate() {
+  if (!isTouchDevice()) return;
+  clearTimeout(_ltDebounce);
+  _ltDebounce = setTimeout(updateLandscapeHeaderTier, 150);
+}
+window.addEventListener('resize', scheduleLandscapeTierUpdate);
+window.addEventListener('orientationchange', scheduleLandscapeTierUpdate);
 
 function equalizeModeRowWidths() {
   // Mobile-only concern: desktop's topbar doesn't center-wrap this row the same way.
@@ -10196,9 +10651,10 @@ function equalizeModeRowWidths() {
 // Run once real fonts have finished loading — measuring against fallback fonts before they
 // load would bake in the wrong correction once the real (likely narrower/wider) font swaps in.
 if (document.fonts && document.fonts.ready) {
-  document.fonts.ready.then(equalizeModeRowWidths);
+  document.fonts.ready.then(() => { equalizeModeRowWidths(); updateLandscapeHeaderTier(); });
 } else {
   equalizeModeRowWidths();
+  updateLandscapeHeaderTier();
 }
 
 /* ── Mobile sidebar ─────────────────────────────────────────────────────── */
@@ -10259,6 +10715,7 @@ if (isTouchDevice()) {
   tab.addEventListener('click', () => {
     const collapsed = sidebar.classList.toggle('sidebar-collapsed');
     tab.textContent = collapsed ? '❮' : '❯';
+    if (!collapsed) resizeCommentIfVisible();
   });
 }
 
@@ -10551,6 +11008,16 @@ if (document.body.classList.contains('is-touch')) {
     const p  = portAtPoint(t.clientX, t.clientY);
     if (!p?.dataset?.id) return;
 
+    // Ports also have a desktop-oriented mousedown/click pair (for mouse drag-to-connect).
+    // Touch devices synthesize a compatibility mousedown/click from this same touch shortly
+    // after it starts, regardless of how long the finger stays down — left unchecked, that
+    // races with this 175ms long-press timer: the port's own mousedown handler fires almost
+    // immediately and mutates portDragState before this timer ever runs, so by the time it
+    // does, the connection attempt silently fails even though the haptic already fired.
+    // preventDefault() on the touch itself suppresses that whole synthetic sequence, so the
+    // short-tap case below has to take over what the native click would otherwise have done.
+    e.preventDefault();
+
     _ppPort    = { el: p, dir: p.dataset.dir, nid: p.dataset.id,
                    portIdx: Number(p.dataset.portIdx || 0) };
     _ppTouchId = t.identifier;
@@ -10558,21 +11025,21 @@ if (document.body.classList.contains('is-touch')) {
 
     _ppTimer = setTimeout(() => {
       _ppTimer  = null;
-      _ppDragOn = true;
-      if (navigator.vibrate) navigator.vibrate(20);
       // Re-fetch port from DOM — it may have been recreated by refreshSquareVisual
       // when the Nodon was selected, making the captured element stale
       const freshP = (_ppPort.dir === 'in' || _ppPort.dir === 'out')
         ? getPort(_ppPort.dir, _ppPort.nid, _ppPort.portIdx)
         : getObjPort(_ppPort.dir, _ppPort.nid);
-      if (!freshP) { _ppDragOn = false; _ppPort = null; return; }  // port gone
+      if (!freshP) { _ppPort = null; return; }  // port gone — no haptic, nothing happened
+      _ppDragOn = true;
+      if (navigator.vibrate) navigator.vibrate(20);
       // Activate portDragState the same way mousedown would, then immediately start the wire
       portDragState = { el: freshP, dir: _ppPort.dir, nid: _ppPort.nid,
                         portIdx: _ppPort.portIdx, isDrag: true,
                         startX: _ppSrc.clientX, startY: _ppSrc.clientY };
       onPortClick(_ppPort.dir, _ppPort.nid, freshP, _ppPort.portIdx);
     }, 175);
-  }, { passive: true });
+  }, { passive: false });
 
   canvEl.addEventListener('touchmove', e => {
     if (!_ppDragOn || !pend) return;
@@ -10584,7 +11051,19 @@ if (document.body.classList.contains('is-touch')) {
   }, { passive: false });
 
   canvEl.addEventListener('touchend', e => {
-    if (!_ppDragOn) { _ppAbort(); return; }
+    if (!_ppDragOn) {
+      // Long-press timer never fired — this was a short tap. The native click that would
+      // normally call onPortClick() was suppressed by this touch's preventDefault() above,
+      // so replicate it manually here instead.
+      const tap = _ppPort;
+      _ppAbort();
+      if (!tap || portDragJustCompleted) return;
+      const freshP = (tap.dir === 'in' || tap.dir === 'out')
+        ? getPort(tap.dir, tap.nid, tap.portIdx)
+        : getObjPort(tap.dir, tap.nid);
+      if (freshP) onPortClick(tap.dir, tap.nid, freshP, tap.portIdx);
+      return;
+    }
     _ppAbort();
     _ppDragOn = false;
     if (!portDragState?.isDrag) { portDragState = null; return; }
@@ -10762,6 +11241,27 @@ if (document.body.classList.contains('is-touch')) {
     el.dispatchEvent(new Event('input'));
   });
 }
+
+/* ── Auto-import from a shared link ──────────────────────────────────────
+   If the page was opened via a "Share as Link" URL (?d=...), decode and import it
+   automatically. Runs once, after the grid and every function it depends on already
+   exist. Left in the URL afterward (not stripped via history.replaceState) so refreshing
+   or re-sharing the same link reproduces the same grid, matching what a permalink implies. */
+(async () => {
+  const shared = new URLSearchParams(location.search).get('d');
+  if (!shared) return;
+  try {
+    const text = await decodeGridFromLink(shared);
+    saveHistory();
+    const result = applyImport(text, false, 0, 0);
+    if (result.errors.length) {
+      setStatus('Loaded shared grid with warnings: ' + result.errors.join(' '), true);
+    }
+    fitZoomToGrid();
+  } catch (e) {
+    setStatus('Could not load the grid from this link — it may be corrupted or from an incompatible browser.', true);
+  }
+})();
 
 })();
 </script>
