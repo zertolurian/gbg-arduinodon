@@ -1,4 +1,7 @@
 # 🤖ArduiNodon🎮
+
+[🇯🇵 日本語版はこちら](./README.ja.md)
+
 An interactive HTML user interface and **Arduino** firmware designed for the 2021 Nintendo Switch game **Game Builder Garage** (a.k.a. **GBG** in English, a.k.a. **はじプロ** in Japan). This tool allows users to easily create, simulate, and share code schematics for GBG on any browser, and then automatically re-draw those schematics in the actual game using an Arduino. (No Switch or game modification required!)
 
 🎥 **[Trailer](https://youtu.be/OXWpxESW4e8?si=QSbBM4nZ4uQ_vH3S)**
