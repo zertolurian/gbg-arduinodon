@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ArduiNodon UI</title>
+<link rel="icon" type="image/png" href="arduinodon_favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -50,6 +51,18 @@ body {
    in JA mode to narrow that gap. */
 body[data-lang="ja"] #topbar { gap: 7px; }
 body[data-lang="ja"] #topbar .top-btn { padding: 5px 8px; font-family:'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','Meiryo','Noto Sans JP',sans-serif; line-height: 14px; }
+/* Title is user-typed and may contain Latin, Japanese, or both, regardless of the current
+   UI language — unlike other .top-btn labels, which always match the active language.
+   Barlow Condensed handles Latin (so an English title matches EN mode exactly); the
+   Japanese stack is the fallback for any CJK characters. An explicit line-height, applied
+   in both languages, keeps the button's height consistent regardless of which glyphs are
+   actually rendered — without it, the JA-fallback font's line-height is taller than Barlow
+   Condensed's, growing the button whenever Japanese characters appear in the title while
+   in EN mode (the reverse of what this rule originally only guarded against). */
+#topbar #layout-name-btn {
+  font-family:'Barlow Condensed','Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic','Meiryo','Noto Sans JP',sans-serif;
+  line-height: 14px;
+}
 /* lang-btn overrides .top-btn's font-size to 10px inline, so it needs its own smaller line-height */
 #topbar #lang-btn { line-height: 11px; }
 /* lang-btn's own text is always "EN" or "JA" — plain Latin, never actual Japanese —
@@ -302,6 +315,13 @@ body.linking-out .obj-port, body.linking-in .obj-port { opacity:.1; pointer-even
 
 /* ═══ SVG WIRES ═══ */
 #wires { position:absolute; top:0; left:0; pointer-events:none; z-index:2; }
+.grid-nums { position:absolute; display:grid; gap:22px; pointer-events:none; z-index:1; }
+#col-nums { top:0; left:20px; height:20px; }
+#row-nums { left:0; top:20px; width:20px; }
+.grid-num {
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--muted); opacity:.45;
+}
 .wire { fill:none; stroke:var(--wire-col); stroke-width:3; stroke-linecap:round; pointer-events:stroke; cursor:pointer; transition:stroke .13s,stroke-width .13s; }
 .wire:hover { stroke:var(--wire-hover); stroke-width:4; }
 /* In sim mode, wires carrying a logical-HIGH signal widen by 3px */
@@ -317,6 +337,10 @@ body.sim-mode .wire.sim-hi-wire.wire-sel { stroke-width:7.5 !important; }
 .obj-wire { fill:none; stroke:rgba(59,130,246,.7); stroke-width:2; stroke-linecap:round; pointer-events:stroke; cursor:pointer; transition:stroke .13s,stroke-width .13s; }
 .obj-wire:hover { stroke:rgba(147,197,253,.9); stroke-width:3; }
 .obj-wire.wire-sel { stroke:#3b82f6 !important; stroke-width:3.5 !important; }
+/* Connections attached to the currently-selected Nodon (Build Mode) — highlighted, not
+   selected. Reuses the existing hover treatment/colors for visual consistency. */
+.wire.conn-hl     { stroke:var(--wire-hover); stroke-width:4; }
+.obj-wire.conn-hl { stroke:rgba(147,197,253,.9); stroke-width:3; }
 @keyframes dash { to { stroke-dashoffset:-12; } }
 @keyframes draw-in { to { stroke-dashoffset:0; } }
 
@@ -398,6 +422,16 @@ select.prop-in option { background:#090e1a; color:var(--text); }
 #p-type[readonly] { opacity:.6; cursor:default; }
 .param-hint { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--muted); opacity:.6; margin-top:2px; }
 .param-disabled { opacity:0.3 !important; pointer-events:none !important; }
+/* Derived Info — read-only values computed live from a Nodon's current settings,
+   shown at the bottom of the settings panel (see DERIVED_INFO / renderDerivedInfo). */
+.derived-info { border-top:1px solid var(--border); padding-top:8px; margin-top:4px; margin-bottom:18px; }
+.derived-info-row {
+  display:flex; justify-content:space-between; gap:8px;
+  font-family:'Share Tech Mono',monospace; font-size:9.5px; color:var(--muted); opacity:.75;
+  line-height:1.6;
+}
+.derived-info-lbl { flex-shrink:0; }
+.derived-info-val { color:var(--accent); opacity:.9; text-align:right; }
 
 .ce { display:flex; align-items:center; gap:7px; padding:5px 8px; background:#090e1a; border:1px solid var(--border); border-radius:3px; margin-bottom:5px; font-family:'Share Tech Mono',monospace; font-size:11px; }
 .ce-badge { font-size:9px; padding:2px 5px; border-radius:2px; flex-shrink:0; letter-spacing:.5px; }
@@ -1212,7 +1246,7 @@ body.sim-mode #import-btn { display:none !important; }
   <div class="tb-logo-spacer"></div>
   <span class="top-logo" id="app-logo" title="View Changelog" data-i18n-title="ui.logo.title" style="cursor:pointer"><span style="color:#007582">Ardui</span><span style="color:#D4C400">Nodon</span> UI</span>
   <div class="tb-logo-right">
-    <span id="app-ver" style="font-size:0.55em;color:#888;font-weight:400;letter-spacing:.04em;vertical-align:middle">v1.4</span>
+    <span id="app-ver" style="font-size:0.55em;color:#888;font-weight:400;letter-spacing:.04em;vertical-align:middle">v1.5</span>
     <button id="lang-btn" class="top-btn" style="font-size:10px;padding:2px 7px;min-width:28px" title="Switch language / 言語切替">EN</button>
   </div>
 </div>
@@ -1304,6 +1338,8 @@ body.sim-mode #import-btn { display:none !important; }
 <div id="main">
   <div id="canvas">
     <div id="gc">
+      <div id="col-nums" class="grid-nums"></div>
+      <div id="row-nums" class="grid-nums"></div>
       <div id="grid"></div>
       <svg id="wires"></svg>
       <div id="wire-del-btn" data-i18n-title="ui.wireDelTitle" title="Delete connection">✕</div>
@@ -1702,6 +1738,38 @@ body.sim-mode #import-btn { display:none !important; }
     </div>
     <div class="modal-body" style="overflow-y:auto;gap:14px">
       <div class="sb-info-disclosure changelog-mt-note">※ このページは機械翻訳です。</div>
+      <div class="sb-info-section">
+        <div class="sb-info-section-hd">V1.5 — 7/5/2026</div>
+        <div class="sb-info-row" style="opacity:.75;line-height:1.6">Added extra parameter notes for several Nodons whose actual functionalities are a little unintuitive. Minor translation improvements.</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">Extra Parameters</div>
+        <div class="sb-info-row">Map — Input Offset, Scaling Factor, Output Offset, Default Output</div>
+        <div class="sb-info-row">Counter — Actual Starting Value, Range Width</div>
+        <div class="sb-info-row">Stick, Shake, Tilt, If Face Up, Rotation Speed, Bull's-Eye, 2D Marker — Input Offset, Scaling Factor</div>
+        <div class="sb-info-row">Digitize — Step Size, Maximum Output</div>
+        <div class="sb-info-row">Timer — Output Delay, Output Duration, Input Cooldown</div>
+        <div class="sb-info-row">Launch Object — Launch Cooldown</div>
+        <div class="sb-info-row">IR Light, Vibration — Output Duration</div>
+        <div class="sb-info-row">Swap Game — Swap Delay</div>
+        <div class="sb-info-row">Angle Sensor — Actual X Angle, Actual Y Angle, Actual Z Angle</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">Simulation</div>
+        <div class="sb-info-row">Implemented clamping bug in Digitize Nodons which was present in the original game</div>
+        <div class="sb-info-row">Implemented actual Angle Sensor outputs when all three rotations are set, except around the quaternion singularities (still in progress)</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">UI</div>
+        <div class="sb-info-row">Connections attached to a selected Nodon are now highlighted</div>
+        <div class="sb-info-row">Favicon added for live web UI</div>
+        <div class="sb-info-row">Added column and row numbers on the grid</div>
+
+        <div class="sb-info-section-hd" style="font-size:9px;opacity:.6;margin-top:4px">Translation</div>
+        <div class="sb-info-row">Several missing translations added</div>
+        <div class="sb-info-row">Several translations improved</div>
+        <div class="sb-info-row">English text in Title now displays in the same font across languages</div>
+      </div>
+
+      <hr class="sb-info-hr">
+
       <div class="sb-info-section">
         <div class="sb-info-section-hd">V1.4 — 6/27/2026</div>
         <div class="sb-info-row" style="opacity:.75;line-height:1.6">Japanese translation is here! Also some Timer Nodon fixes and minor UI improvements.</div>
@@ -2110,6 +2178,7 @@ const STRINGS = {
     'ui.logo.title': 'View Changelog', 'ui.ce.remove': 'Remove',
     'ui.port.in': 'Input', 'ui.port.out': 'Output', 'ui.port.top': 'Top', 'ui.port.bottom': 'Bottom', 'ui.port.object': 'object',
     'ui.badge.in': 'IN', 'ui.badge.out': 'OUT', 'ui.badge.top': 'TOP', 'ui.badge.bot': 'BOT',
+    'ui.derived.frame': 'frame', 'ui.derived.frames': 'frames', 'ui.derived.na': 'N/A',
     'ui.sb.noParams': '— no parameters —',
     'ui.bf.normalObjects': 'Normal Objects', 'ui.bf.fancyObjects': 'Fancy Objects',
     'ui.bf.selectAll': 'All', 'ui.bf.deselectAll': 'None', 'ui.modal.done': 'Done',
@@ -2302,6 +2371,7 @@ const STRINGS = {
     'ui.logo.title': '更新履歴を見る', 'ui.ce.remove': '削除',
     'ui.port.in': '入力', 'ui.port.out': '出力', 'ui.port.top': '上のれんけつ', 'ui.port.bottom': '下のれんけつ', 'ui.port.object': 'れんけつ',
     'ui.badge.in': '入力', 'ui.badge.out': '出力', 'ui.badge.top': '上', 'ui.badge.bot': '下',
+    'ui.derived.frame': 'フレーム', 'ui.derived.frames': 'フレーム', 'ui.derived.na': 'なし',
     'ui.sb.noParams': '— パラメータなし —',
     'ui.bf.normalObjects': '通常のモノ', 'ui.bf.fancyObjects': 'オシャレなモノ',
     'ui.bf.selectAll': 'すべて選択', 'ui.bf.deselectAll': 'すべて解除', 'ui.modal.done': '完了',
@@ -2383,8 +2453,7 @@ function setLang(lang) {
   // Sidebar panel if a Nodon is currently selected — re-clicking an already-selected tile
   // is a no-op (see onSquareClick), so without this the open panel would stay stale.
   if (sel) {
-    const td = nodes[sel]?.type ? NODON_TYPES[nodes[sel].type] : null;
-    if (td) document.getElementById('sb-title').textContent = `${td.name} ${fmt(sel)}`;
+    document.getElementById('sb-title').textContent = `${NODON_TYPES[nodes[sel]?.type]?.name ?? t('ui.sb.nodeFallback')} ${fmt(sel)}`;
     _syncPType(sel);
     renderParamInputs(sel);
     renderNodonBrowser(sel);
@@ -3335,6 +3404,19 @@ function portNamesFor(type) {
 }
 const PARAM_LABEL_JA = {
   'Movable': '動く', 'Solid': '当たる', 'Visible': '見える',
+  'Marker Size': 'おおきさ', 'Category': 'カテゴリー',
+  'Rotation Y': 'Y軸回転', 'Rotation X': 'X軸回転', 'Rotation Z': 'Z軸回転',
+  'Turning Speed': 'せんかい速度', 'Text Display Side': '表示方向',
+  'Position X': 'X位置', 'Position Y': 'Y位置', 'Position Z': 'Z位置',
+  'Launch Limit': '発射の上限数', 'Launch Direction': '発射方向',
+  'Teleport Physics': 'ワープしせい', 'Sun Direction': '太陽の方角', 'Sun Height': '太陽の高度',
+  // ── Derived Info (computed-value display) ──
+  'Input Offset': '入力オフセット', 'Scaling Factor': '倍率', 'Output Offset': '出力オフセット',
+  'Default Output': 'デフォルトの出力', 'Actual Starting Value': '実際のスタートのときのカウント', 'Range Width': '範囲の幅',
+  'Step Size': 'ステップサイズ', 'Maximum Output': '最大出力',
+  'Output Delay': '出力遅延', 'Output Duration': '出力継続時間', 'Input Cooldown': '入力クールダウン',
+  'Launch Cooldown': '発射のクールダウン', 'Swap Delay': 'きりかえの遅延',
+  'Actual X Angle': '実際のX軸の角度', 'Actual Y Angle': '実際のY軸の角度', 'Actual Z Angle': '実際のZ軸の角度',
   'A Button': 'Aボタン', 'B Button': 'Bボタン', 'L Button': 'Lボタン', 'R Button': 'Rボタン',
   'X Button': 'Xボタン', 'Y Button': 'Yボタン', 'ZL Button': 'ZLボタン', 'ZR Button': 'ZRボタン',
   'L3 Button': 'L3ボタン', 'R3 Button': 'R3ボタン',
@@ -3346,7 +3428,7 @@ const PARAM_LABEL_JA = {
   'Face X': '面X', 'Face Y': '面Y', 'Face Z': '面Z',
   'Lower': '下限', 'Upper': '上限', 'Horiz.': '水平', 'Vert.': '垂直',
   'Whole': '整数', 'Dec.': '小数', 'Stiffness': 'かたさ', 'Length': 'ながさ',
-  'Interval': '間隔', 'Digits': 'ケタ数', 'String': 'ヒモ', 'Launch': '発射', 'Tracking': '追従', 'Speed': '速度',
+  'Interval': '間隔', 'Digits': 'ケタ数', 'String': 'ヒモ', 'Launch': '発射', 'Tracking': '追従率', 'Speed': '速度',
   'Check What?': 'どれをチェックする？',
   "Bull's-Eye Shape": 'スポイトのかたち',
   'Behavior': 'ふるまい',
@@ -3380,7 +3462,7 @@ const PARAM_LABEL_JA = {
   'Size': 'おおきさ',
   'Rotation': '回転',
   'Position': '位置',
-  'Offset': 'オフセット',
+  'Offset': 'ずらすキョリ',
   'Output Value': 'いくつを出力する？',
   'Buttons': 'ボタン',
   'Direction': 'はんのうする方向',
@@ -3469,6 +3551,7 @@ const PARAM_LABEL_JA = {
 const PARAM_LABEL_JA_OVERRIDE = {
   objectBreak: { 'Check What?': '何をチェックする？' },
   bullseye:    { 'Sensor Shape': 'スポイトのかたち' },
+  horizontalTrack: { 'Vert.': '上下' },
 };
 /* Translates a param label for display, given the owning Nodon's type key. */
 function tParamLabel(type, label) {
@@ -3478,6 +3561,8 @@ function tParamLabel(type, label) {
 
 const OPTION_LABEL_JA = {
   'Any': 'どちらでも', 'Any Direction': 'どちらでも',
+  'Near': 'ちかくだけ', 'Initial Position': '初期位置',
+  'X Ctr': 'X中央', 'Y Ctr': 'Y中央', 'Z Ctr': 'Z中央',
   'On grip': 'つかまれたしゅんかん', 'While gripped': 'つかまれていたらずっと',
   'Traveler': 'おじさん',
   'Controller 1': 'コントローラー1', 'Controller 2': 'コントローラー2',
@@ -3796,9 +3881,9 @@ function tBitfieldPairLabel(label) {
 const NOTE_JA = {
   'Bit field': 'ビットフィールド',
   '0 = no change': '0 = 変更なし',
-  '0 or blank = no change; integers 1–200': '0または空白 = 変更なし；整数1〜200',
+  '0 or blank = no change; integers 1–200': '0または空白 = 変更なし、整数1〜200',
   '−100 to 100; 404 = no change (outputs 0)': '−100〜100；404 = 変更なし（0を出力）',
-  '−100 to 100; leave blank for no change': '−100〜100；変更なしの場合は空白にしてください',
+  '−100 to 100; leave blank for no change': '−100〜100、変更なしの場合は空白にしてください',
 };
 function tNote(note) {
   if (currentLang !== 'ja') return note;
@@ -4352,6 +4437,40 @@ const CHANGELOG_JA = {
   'Export now shows warnings when Person Nodons or gyro-related Nodons (Shake, Tilt, If Face Up, Rotation Speed, IR Motion Camera, IR Light, Hand) are present': 'ヒトノードンやジャイロ関連ノードン（フリフリ、かたむき、オモテ面が上を向いたら、回転速度、モーションIRカメラ、赤外線ライト、手）が含まれる場合、エクスポート時に警告を表示するようになりました',
   // V1.0
   'Initial release! Full Nodon editor and simulator with import/export functionality.': '初回リリース！インポート/エクスポート機能を備えた、完全なノードンエディター兼シミュレーター。',
+  // V1.5
+  'Extra Parameters': '追加パラメータ',
+  'Added extra parameter notes for several Nodons whose actual functionalities are a little unintuitive. Minor translation improvements.':
+    '一部のノードンについて、実際の動作が少し分かりにくい部分に補足パラメータを追加しました。翻訳も少し改善しています。',
+  'Map — Input Offset, Scaling Factor, Output Offset, Default Output':
+    'マッピング — 入力オフセット、倍率、出力オフセット、初期出力値',
+  'Counter — Actual Starting Value, Range Width':
+    'カウンター — 実際の開始値、はんいの幅',
+  "Stick, Shake, Tilt, If Face Up, Rotation Speed, Bull's-Eye, 2D Marker — Input Offset, Scaling Factor":
+    'スティック、ふり、かたむき、オモテ面が上を向いたら、回転速度、スポイト、2Dマーカー表示 — 入力オフセット、倍率',
+  'Digitize — Step Size, Maximum Output':
+    'デジタル化 — 刻み幅、最大出力値',
+  'Timer — Output Delay, Output Duration, Input Cooldown':
+    'タイマー — 出力の遅延、出力時間、入力のクールダウン',
+  'Launch Object — Launch Cooldown':
+    'モノを発射 — 発射のクールダウン',
+  'IR Light, Vibration — Output Duration':
+    '赤外線ライトをひからせる、しんどう — 出力時間',
+  'Swap Game — Swap Delay':
+    'ゲームきりかえ — 切り替えの遅延',
+  'Angle Sensor — Actual X Angle, Actual Y Angle, Actual Z Angle':
+    '角度センサー — 実際のX角度、実際のY角度、実際のZ角度',
+  'Connections attached to a selected Nodon are now highlighted':
+    '選択したノードンに繋がっているワイヤーがハイライト表示されるようになりました',
+  'Favicon added for live web UI': 'ウェブ版UIにファビコンを追加しました',
+  'Implemented clamping bug in Digitize Nodons which was present in the original game':
+    'デジタル化ノードンについて、元のゲームに存在していたクランプのバグを再現しました',
+  'Implemented actual Angle Sensor outputs when all three rotations are set, except around the quaternion singularities (still in progress)':
+    '3つの回転すべてが設定されている場合の角度センサーの実際の出力を実装しました（クォータニオンの特異点付近は現在対応中です）',
+  'Added column and row numbers on the grid': 'グリッドに列番号と行番号を追加しました',
+  'Several missing translations added': '未翻訳だった箇所をいくつか追加しました',
+  'Several translations improved': 'いくつかの翻訳を改善しました',
+  'English text in Title now displays in the same font across languages':
+    'タイトルの英語テキストが、言語に関わらず同じフォントで表示されるようになりました',
 };
 const STATUS_JA = {
   'Cannot connect; would create a circular connection group.': 'ワイヤーをつなぐことはできません。れんけつグループが循環してしまいます。',
@@ -4488,10 +4607,10 @@ const MESSAGES = {
   launchLimitReached:{ en:a=>`Cannot switch to ${a.label}; limit of ${a.max} already reached.`,
                        ja:a=>`${a.label}に切り替えることはできません。上限の${a.max}に達しています。` },
   // ── Sim stepping ──
-  stepBackN:         { en:a=>`Stepped back ${a.n} sf → f = ${a.f}, sf = ${a.sf}.`,    ja:a=>`${a.n}sfずつ戻す → f = ${a.f}, sf = ${a.sf}` },
-  stepFwdN:          { en:a=>`Stepped forward ${a.n} sf → f = ${a.f}, sf = ${a.sf}.`, ja:a=>`${a.n}sfずつ進める → f = ${a.f}, sf = ${a.sf}` },
-  stepBack1:         { en:a=>`Stepped back 1 sf → f = ${a.f}, sf = ${a.sf}.`,         ja:a=>`1sfずつ戻る → f = ${a.f}, sf = ${a.sf}` },
-  stepFwd1:          { en:a=>`Stepped forward 1 sf → f = ${a.f}, sf = ${a.sf}.`,      ja:a=>`1sfずつ進む → f = ${a.f}, sf = ${a.sf}` },
+  stepBackN:         { en:a=>`Stepped back ${a.n} sf → f = ${a.f}, sf = ${a.sf}.`,    ja:a=>`${a.n}sf戻しました → f = ${a.f}, sf = ${a.sf}` },
+  stepFwdN:          { en:a=>`Stepped forward ${a.n} sf → f = ${a.f}, sf = ${a.sf}.`, ja:a=>`${a.n}sf進めました → f = ${a.f}, sf = ${a.sf}` },
+  stepBack1:         { en:a=>`Stepped back 1 sf → f = ${a.f}, sf = ${a.sf}.`,         ja:a=>`1sf戻しました → f = ${a.f}, sf = ${a.sf}` },
+  stepFwd1:          { en:a=>`Stepped forward 1 sf → f = ${a.f}, sf = ${a.sf}.`,      ja:a=>`1sf進めました → f = ${a.f}, sf = ${a.sf}` },
   // ── Import ──
   importResult:      { en:a=>`Imported ${a.placed} Nodon${a.placed!==1?'s':''}, ${a.conns} signal + ${a.objConns} object connection${a.conns+a.objConns!==1?'s':''}.`,
                        ja:a=>`ノードンを${a.placed}体、シグナルワイヤーを${a.conns}本、れんけつワイヤーを${a.objConns}本インポートしました。` },
@@ -4520,10 +4639,8 @@ const MESSAGES = {
                        ja:a=>`カメラをコピーできません。${a.blocker}が既に存在します。` },
   copyTypeBlocked:   { en:a=>`Cannot copy ${a.name}; ${a.blocker} is already present.`,
                        ja:a=>`${a.name}をコピーできません。${a.blocker}が既に存在します。` },
-  copyTeleportDup:   { en:a=>`Cannot copy; would create ${a.n} Teleport Exits with ID '${a.id}'.`,
-                       ja:a=>`コピーできません。ID「${a.id}」のモノワープ出口が${a.n}体になってしまいます。` },
-  copyTeleportExists:{ en:a=>`Cannot copy; Teleport Exit ID '${a.id}' already exists.`,
-                       ja:a=>`コピーできません。ID「${a.id}」のモノワープ出口が既に存在します。` },
+  copyTeleportNoRoom:{ en:a=>`Cannot copy; only ${a.free} Teleport Exit ID${a.free!==1?'s':''} available for ${a.n} Teleport Exits.`,
+                       ja:a=>`コピーできません。モノワープ出口${a.n}体に対して、空きIDが${a.free}個しかありません。` },
   copyLaunchLimit:   { en:a=>`Cannot copy; would exceed the Launch Object (${LAUNCH_LIMIT_LABELS[a.ll]||''}) limit of ${a.max}.`,
                        ja:a=>`コピーできません。モノ発射（${LAUNCH_LIMIT_LABELS_JA[a.ll]||''}）の上限である${a.max}体を超えてしまいます。` },
 };
@@ -5724,6 +5841,26 @@ function refreshSquareVisual(nid) {
 /* ═══════════════════════════════════════════════════════════════
    BUILD GRID
 ═══════════════════════════════════════════════════════════════ */
+// (Re)builds the column/row number overlays to match the current COLS/ROWS. Uses the same
+// grid-template-columns/rows as #grid itself (gap matched via CSS), so each number cell
+// lines up with its column/row automatically — no manual pixel math, and nothing here
+// touches #grid's own layout, so tile positions are completely unaffected.
+function renderGridNums() {
+  const colEl = document.getElementById('col-nums');
+  const rowEl = document.getElementById('row-nums');
+  colEl.style.gridTemplateColumns = `repeat(${COLS},52px)`;
+  rowEl.style.gridTemplateRows    = `repeat(${ROWS},52px)`;
+  colEl.innerHTML = '';
+  rowEl.innerHTML = '';
+  for (let c=0; c<COLS; c++) {
+    const d = document.createElement('div'); d.className='grid-num'; d.textContent = c;
+    colEl.appendChild(d);
+  }
+  for (let r=0; r<ROWS; r++) {
+    const d = document.createElement('div'); d.className='grid-num'; d.textContent = r;
+    rowEl.appendChild(d);
+  }
+}
 function buildGrid() {
   cancelPend();
   deselect();
@@ -5765,6 +5902,7 @@ function buildGrid() {
   gridEl.innerHTML = '';
   gridEl.style.gridTemplateColumns = `repeat(${COLS},52px)`;
   gridEl.style.gridTemplateRows    = `repeat(${ROWS},52px)`;
+  renderGridNums();
 
   for (let r=0; r<ROWS; r++) {
     for (let c=0; c<COLS; c++) {
@@ -6016,6 +6154,7 @@ function redraw(newIdx=-1) {
       path.classList.add('wire-sel');
       selMidX=(x1+x2)/2; selMidY=(y1+y2)/2; selRendered=true;
     }
+    if (sel && (w.from === sel || w.to === sel)) path.classList.add('conn-hl');
     // Part of the multi-selection if explicitly clicked, or both endpoints are selected Nodons
     if (msWireIdx.has(i) || (msNids.includes(w.from) && msNids.includes(w.to))) path.classList.add('multi-sel');
     path.style.pointerEvents='stroke';
@@ -6060,6 +6199,7 @@ function redraw(newIdx=-1) {
     path.dataset.owdx = i;  // index for delete-mode hit detection
     const isSel=(i===selObjWire);
     if (isSel) { path.classList.add('wire-sel'); selMidX=(x1+x2)/2; selMidY=(y1+y2)/2; selRendered=true; }
+    if (sel && (w.from === sel || w.to === sel)) path.classList.add('conn-hl');
     if (msObjWireIdx.has(i) || (msNids.includes(w.from) && msNids.includes(w.to))) path.classList.add('multi-sel');
     path.style.pointerEvents='stroke';
     path.addEventListener('click',e=>{ const pt=portAtPoint(e.clientX,e.clientY); if(pt){pt.click();return;} e.stopPropagation(); if(msActive||e.ctrlKey||e.metaKey){toggleMultiWireSel(i,'obj');return;} if(deleteMode){if(delDragJustCompleted)return;saveHistory();deleteObjWire(i);setStatus(tStatus('Object wire deleted.'));return;} selectObjWire(i); });
@@ -6263,6 +6403,7 @@ document.addEventListener('mousemove', e => {
         document.getElementById('p-comment-row').style.display = nd.type ? '' : 'none';
         updateSbFooterButtons(!!nd.type);
         renderParamInputs(dragMove.nid); renderNodonBrowser(dragMove.nid); renderConnList();
+        redraw();
       }
       const name = NODON_TYPES[nodes[dragMove.nid]?.type]?.name || 'Nodon';
       setStatus(msg('dragMoveOne', {name}), true);
@@ -6691,6 +6832,34 @@ const LAUNCH_LIMIT_LABELS = {0:'1 object', 1:'10 objects', 2:'100 objects'};
 const LAUNCH_LIMIT_LABELS_JA = {0:'1個', 1:'10個', 2:'100個'};
 const CAM_ADVANCED_TYPES = ['cameraPosition','cameraTarget','cameraDirection','cameraAngle'];
 
+// ── Teleport Exit ID auto-assignment (create/copy only — see checkPlacementAllowed,
+// doDupeNodon, and doMultiDupe) ──────────────────────────────────────────────────
+// Set of Teleport Exit IDs (0-7 / A-H) currently in use anywhere on the grid.
+function _usedTeleportIds() {
+  return new Set(Object.values(nodes).filter(nd => nd.type === 'teleportExit').map(nd => nd.params.teleportID ?? 0));
+}
+// Earliest ID (0-7) not in usedIds, or null if all 8 are taken.
+function _nextFreeTeleportId(usedIds) {
+  for (let i = 0; i < 8; i++) if (!usedIds.has(i)) return i;
+  return null;
+}
+// Resolves a distinct fresh ID for each nid in newNids (nids about to receive a newly
+// created or copied Teleport Exit) — earliest free letters first, guaranteed not to collide
+// with any existing Teleport Exit or with each other. Returns null if there isn't a free ID
+// for all of them (nothing is reserved in that case; the caller is expected to block the
+// whole operation rather than partially apply it).
+function _resolveTeleportExitIds(newNids) {
+  const used = _usedTeleportIds();
+  const assignment = new Map();
+  for (const nid of newNids) {
+    const freeId = _nextFreeTeleportId(used);
+    if (freeId === null) return null;
+    used.add(freeId);
+    assignment.set(nid, freeId);
+  }
+  return assignment;
+}
+
 // Returns an error string if typeKey cannot be placed, or null if allowed.
 // excludingNid: nid to skip when counting existing instances (the cell being replaced).
 // paramsHint: the params the new node will have (for param-dependent limits).
@@ -7002,11 +7171,16 @@ function cancelDupeMode() {
 }
 function doDupeNodon(fromNid, toNid) {
   const src = nodes[fromNid], dst = nodes[toNid];
-  const err = checkPlacementAllowed(src.type, null, src.params);
+  let paramsHint = src.params;
+  if (src.type === 'teleportExit') {
+    const freeId = _resolveTeleportExitIds([fromNid])?.get(fromNid);
+    if (freeId !== undefined) paramsHint = {...src.params, teleportID: freeId};
+  }
+  const err = checkPlacementAllowed(src.type, null, paramsHint);
   if (err) { setStatus(err); cancelDupeMode(); return; }
   saveHistory();
   dst.type    = src.type;
-  dst.params  = {...src.params};
+  dst.params  = {...paramsHint};
   dst.comment = src.comment;
   refreshSquareVisual(toNid);
   clearModeWires();
@@ -7199,10 +7373,11 @@ function onSquareClick(nid, e) {
   renderParamInputs(nid);
   renderNodonBrowser(nid);
   renderConnList();
+  redraw();
   setStatus(msg('nodeSelected', {id: fmt(nid)}));
 }
 function deselect() {
-  if (sel) { const old=sel; sel=null; refreshSquareVisual(old); }
+  if (sel) { const old=sel; sel=null; refreshSquareVisual(old); redraw(); }
   document.getElementById('sidebar').classList.remove('active');
 }
 function getSquare(nid) { return gridEl.querySelector(`.sq[data-id="${nid}"]`); }
@@ -7295,9 +7470,9 @@ function getTexFaceSummary(nid) {
   TEX_FACE_GROUPS.forEach(g => {
     const pdef = td.params.find(p => p.key === g.key);
     const v = nd.params.hasOwnProperty(g.key) ? nd.params[g.key] : (pdef ? pdef.df : 0);
-    if (v & 1) faces.push(g.names[0]);
-    if (v & 2) faces.push(g.names[1]);
-    if (v & 4) faces.push(g.names[2]);
+    if (v & 1) faces.push(tOptionLabel(undefined, g.names[0]));
+    if (v & 2) faces.push(tOptionLabel(undefined, g.names[1]));
+    if (v & 4) faces.push(tOptionLabel(undefined, g.names[2]));
   });
   if (!faces.length) return tOptionLabel(undefined, 'None');
   if (faces.length === 9) return currentLang === 'ja' ? 'すべての面' : 'All faces';
@@ -7347,7 +7522,7 @@ function openTexturePicker(nid, summaryBtn) {
     [0, 1, 2].forEach(bit => {
       const chip = document.createElement('button');
       chip.className = 'pick-chip' + (((v >> bit) & 1) ? ' active' : '');
-      chip.textContent = g.names[bit];
+      chip.textContent = tOptionLabel(undefined, g.names[bit]);
       chip.addEventListener('click', () => {
         chip.classList.toggle('active');
         const curv = nd.params.hasOwnProperty(g.key) ? nd.params[g.key] : (pdef ? pdef.df : 0);
@@ -7401,7 +7576,7 @@ function openConnPointPicker(nid, ownDef, targetDef, summaryBtn) {
     const curOwn = nd.params.hasOwnProperty('connectionOwn') ? nd.params['connectionOwn'] : ownDef.df;
     const chip = Object.assign(document.createElement('button'), {
       className: 'pick-chip' + (!isAuto && curOwn === v ? ' active' : ''),
-      textContent: l, disabled: isAuto,
+      textContent: tOptionLabel(undefined, l), disabled: isAuto,
     });
     ownChipMap.push({chip, v});
     ownRow.appendChild(chip);
@@ -7418,7 +7593,7 @@ function openConnPointPicker(nid, ownDef, targetDef, summaryBtn) {
     const curTgt = nd.params.hasOwnProperty('connectionTarget') ? nd.params['connectionTarget'] : targetDef.df;
     const chip = Object.assign(document.createElement('button'), {
       className: 'pick-chip' + (!isAuto && curTgt === v ? ' active' : ''),
-      textContent: l, disabled: isAuto,
+      textContent: tOptionLabel(undefined, l), disabled: isAuto,
     });
     tgtChipMap.push({chip, v});
     tgtRow.appendChild(chip);
@@ -7748,9 +7923,9 @@ const INLINE_PAIR_SECOND_KEYS = new Set(Object.values(INLINE_PAIRS).map(p => p.s
    null = skip entire group.  indices: 0=X, 1=Y, 2=Z
 ═══════════════════════════════════════════════════════════════ */
 const EO_LAYOUT = {
-  person:             { size:[0,1,2], rot:[1],         pos:[0,1,2] },
-  car:                { size:[0,1,2], rot:[1],         pos:[0,1,2] },
-  ufo:                { size:[0,1,2], rot:[1],         pos:[0,1,2] },
+  person:             { size:[0,1,2], rot:[1],         pos:[0,1,2], rotLabel:'Rotation Y' },
+  car:                { size:[0,1,2], rot:[1],         pos:[0,1,2], rotLabel:'Rotation Y' },
+  ufo:                { size:[0,1,2], rot:[1],         pos:[0,1,2], rotLabel:'Rotation Y' },
   texture:            { size:[0,1],   rot:[0],         pos:[0,1,2], rotLabel:'Rotation' },
   slideConnector:     { size:null,    rot:null,        pos:[0,1,2] },
   freeSlideConnector: { size:null,    rot:null,        pos:[0,1,2] },
@@ -7813,6 +7988,154 @@ function applyTiltDisable(nid) {
     if (el) el.classList.toggle('param-disabled', isAngle);
   });
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   DERIVED INFO  —  read-only values computed from a Nodon's current settings,
+   shown at the bottom of its Settings panel and updated live as settings change
+   (see the delegated 'input'/'change' listener on #nodon-params, set up once below).
+   Each entry is (params) => [[label, formattedValue], ...] or null/[] for none.
+═══════════════════════════════════════════════════════════════ */
+// Shared by Stick/Shake/Tilt/If Face Up/Rotation Speed (keys lowerIn/upperIn) and
+// Bull's-Eye/2D Marker (keys lowerRange/upperRange) — same two formulas either way.
+function _derivedOffsetScale(p, loKey, hiKey) {
+  const lo = F(p[loKey] ?? 0), hi = F(p[hiKey] ?? 1);
+  const inOff = F(-lo);
+  const scale = F(F(1) / F(hi - lo));
+  return [
+    ['Input Offset', fmtSimVal(inOff, 4)],
+    ['Scaling Factor', fmtSimVal(scale, 4)],
+  ];
+}
+// Shared by Timer/IR Light/Vibration's "Continue For" → frames conversion, matching the
+// exact formula already used for Timer's simNodeCfg (see _resetSimState): ceil(sec*60),
+// with 0 staying 0. durFrames=0 has a special "still pulses for ~1 tick" meaning
+// internally, so the DISPLAYED duration shows 1 rather than a possibly-misleading 0.
+function _outputDurationFrames(outDuration) {
+  const raw = (outDuration ?? 0) > 0 ? Math.ceil(outDuration * 60) : 0;
+  return raw === 0 ? 1 : raw;
+}
+// Formats a frame count with the correct singular/plural translated unit word.
+function _frameLabel(n) {
+  return `${n} ${n === 1 ? t('ui.derived.frame') : t('ui.derived.frames')}`;
+}
+const DERIVED_INFO = {
+  map: (p) => {
+    const lo=F(p.lowerIn??0), hi=F(p.upperIn??1), loOut=F(p.lowerOut??-1), hiOut=F(p.upperOut??1);
+    const inverted = (p.invert??0)===1;
+    const ymin = inverted ? hiOut : loOut;
+    const ymax = inverted ? loOut : hiOut;
+    const inOff  = F(-lo);
+    const scale  = F(F(ymax-ymin) / F(hi-lo));
+    const outOff = ymin;
+    const rawDefOut = F(F(inOff*scale) + outOff);
+    const defOut = _isSpecial(rawDefOut) ? F(0) : rawDefOut;
+    const reciprocal = F(F(1)/scale);
+    const recipSign = reciprocal < 0 ? '-' : '';
+    const recipAbs = F(Math.abs(reciprocal));
+    const scaleStr = currentLang === 'ja'
+      ? `${fmtSimVal(scale, 4)}倍または${recipSign}1/${fmtSimVal(recipAbs, 4)}`
+      : `${fmtSimVal(scale, 4)} or ${recipSign}1/${fmtSimVal(recipAbs, 4)}`;
+    return [
+      ['Input Offset',   fmtSimVal(inOff, 4)],
+      ['Scaling Factor', scaleStr],
+      ['Output Offset',  fmtSimVal(outOff, 4)],
+      ['Default Output', fmtSimVal(defOut, 4)],
+    ];
+  },
+  counter: (p) => {
+    const mode = p.mode ?? 0;
+    const sv = F(p.startVal ?? 0);
+    if (mode === 0) { // No Limit — range bounds are inert; show the Starting Value as-is
+      return [['Actual Starting Value', fmtSimVal(sv, 3)], ['Range Width', t('ui.derived.na')]];
+    }
+    const lo=F(p.lowerRange??0), hi=F(p.upperRange??1000);
+    const actualStart = F(Math.min(Math.max(sv, lo), hi));
+    const width = F(hi - lo);
+    const widthStr = (mode === 2 ? '<' : '') + fmtSimVal(width, 3); // Loop: width is an exclusive bound
+    return [
+      ['Actual Starting Value', fmtSimVal(actualStart, 3)],
+      ['Range Width', widthStr],
+    ];
+  },
+  stick:         (p) => _derivedOffsetScale(p, 'lowerIn', 'upperIn'),
+  shake:         (p) => _derivedOffsetScale(p, 'lowerIn', 'upperIn'),
+  tilt:          (p) => _derivedOffsetScale(p, 'lowerIn', 'upperIn'),
+  ifFaceUp:      (p) => _derivedOffsetScale(p, 'lowerIn', 'upperIn'),
+  rotationSpeed: (p) => _derivedOffsetScale(p, 'lowerIn', 'upperIn'),
+  bullseye:      (p) => _derivedOffsetScale(p, 'lowerRange', 'upperRange'),
+  marker2D:      (p) => _derivedOffsetScale(p, 'lowerRange', 'upperRange'),
+  digitize: (p) => {
+    const stages = p.stages ?? 2; // min 2, so denom is always >= 1
+    const denom  = F(stages - 1);
+    const step   = F(F(1) / denom);
+    const maxOut = F(F(2147483647) / denom);
+    return [
+      ['Step Size', fmtSimVal(step, 6)],
+      ['Maximum Output', fmtSimVal(maxOut, 0)],
+    ];
+  },
+  timer: (p) => {
+    const outDelay = p.outDelay ?? 1.0, outDuration = p.outDuration ?? 0.0;
+    const dF = outDelay > 0 ? Math.ceil(outDelay * 60) : 0; // exact simNodeCfg formula
+    const uFraw = outDuration > 0 ? Math.ceil(outDuration * 60) : 0;
+    const uFdisp = uFraw === 0 ? 1 : uFraw;
+    const cooldown = dF + uFraw; // raw (not display-adjusted) per confirmation
+    return [
+      ['Output Delay',    _frameLabel(dF)],
+      ['Output Duration', _frameLabel(uFdisp)],
+      ['Input Cooldown',  _frameLabel(cooldown)],
+    ];
+  },
+  launchObject: (p) => {
+    const frames = Math.ceil((p.launchInterval ?? 1.0) * 60);
+    return [['Launch Cooldown', _frameLabel(frames)]];
+  },
+  irLight:   (p) => [['Output Duration', _frameLabel(_outputDurationFrames(p.outDuration))]],
+  vibration: (p) => [['Output Duration', _frameLabel(_outputDurationFrames(p.outDuration))]],
+  swapGame: (p) => {
+    const frames = (p.transition ?? 0) === 1 ? 20 : 110; // 1 = Without Title
+    return [['Swap Delay', _frameLabel(frames)]];
+  },
+  angleSensor: (p) => {
+    const a = _computeActualAngles(p.rotX ?? 0, p.rotY ?? 0, p.rotZ ?? 0);
+    return [
+      ['Actual X Angle', fmtSimVal(a.x, 3) + '°'],
+      ['Actual Y Angle', fmtSimVal(a.y, 3) + '°'],
+      ['Actual Z Angle', fmtSimVal(a.z, 3) + '°'],
+    ];
+  },
+};
+// (Re)renders the derived-info block for the given Nodon at the bottom of #nodon-params.
+function renderDerivedInfo(nid) {
+  const old = document.getElementById('derived-info');
+  if (old) old.remove();
+  const nd = nid && nodes[nid];
+  if (!nd?.type) return;
+  const fn = DERIVED_INFO[nd.type];
+  if (!fn) return;
+  const lines = fn(nd.params || {});
+  if (!lines || !lines.length) return;
+  const pdiv = document.getElementById('nodon-params');
+  if (!pdiv) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'derived-info';
+  wrap.id = 'derived-info';
+  lines.forEach(([label, value]) => {
+    const row = document.createElement('div'); row.className = 'derived-info-row';
+    const lbl = document.createElement('span'); lbl.className = 'derived-info-lbl';
+    lbl.textContent = tParamLabel(nd.type, label);
+    const val = document.createElement('span'); val.className = 'derived-info-val';
+    val.textContent = value;
+    row.appendChild(lbl); row.appendChild(val);
+    wrap.appendChild(row);
+  });
+  pdiv.appendChild(wrap);
+}
+// Recompute the derived-info block on any settings change, without wiring extra logic
+// into every individual input across every Nodon type — one delegated listener instead.
+['input', 'change'].forEach(evt => {
+  document.getElementById('nodon-params').addEventListener(evt, () => renderDerivedInfo(sel));
+});
 
 /* ═══════════════════════════════════════════════════════════════
    RENDER PARAM INPUTS
@@ -7881,7 +8204,7 @@ function renderParamInputs(nid) {
         [[p, pairInfo.axisLabels[0]], [pdef2, pairInfo.axisLabels[1]]].forEach(([pd, axLabel]) => {
           const cell = document.createElement('div'); cell.className = 'xyz-cell';
           const axLbl = document.createElement('div'); axLbl.className = 'xyz-axis';
-          axLbl.textContent = tParamLabel(undefined, axLabel); cell.appendChild(axLbl);
+          axLbl.textContent = tParamLabel(p.key, axLabel); cell.appendChild(axLbl);
           const inp = document.createElement('input');
           inp.type = 'number'; inp.className = 'prop-in';
           inp.min = pd.mn; inp.max = pd.mx; inp.step = pd.st;
@@ -8260,7 +8583,7 @@ function renderParamInputs(nid) {
         const groupLabelJa = tParamLabel(undefined, groupLabel);
         if (params.length === 1) {
           // Single axis → plain prop-row (no axis sub-label)
-          const label = singleLabel || `${groupLabelJa} ${axLetter(axes[0])}`;
+          const label = (singleLabel ? tParamLabel(undefined, singleLabel) : null) || `${groupLabelJa} ${axLetter(axes[0])}`;
           const row=document.createElement('div'); row.className='prop-row';
           row.dataset.eoGroup=groupLabel.toLowerCase();
           const lbl=document.createElement('div'); lbl.className='prop-lbl'; lbl.textContent=label;
@@ -8354,6 +8677,7 @@ function renderParamInputs(nid) {
       bottomWrap.appendChild(row);
     });
   }
+  renderDerivedInfo(nid);
 } // end renderParamInputs
 
 /* ═══════════════════════════════════════════════════════════════
@@ -8701,17 +9025,11 @@ function checkMultiDupePlacement(nids) {
     const blk = ['gameScreen','camera'].find(t=>hasType(t));
     if (blk) return msg('copyTypeBlocked', {name: nm(advT), blocker: nm(blk)});
   }
-  // 3. Teleport Exit: at most one per ID
+  // 3. Teleport Exit: earliest free IDs get auto-assigned to each copy (see doMultiDupe) —
+  // only block if there isn't a free ID for every Teleport Exit being copied.
   const exitNids = nids.filter(nid=>nodes[nid].type==='teleportExit');
-  if (exitNids.length) {
-    const IDLabels=['A','B','C','D','E','F','G','H'];
-    const byID={};
-    exitNids.forEach(nid=>{ const tid=nodes[nid].params.teleportID??0; byID[tid]=(byID[tid]||0)+1; });
-    for (const [tid, cnt] of Object.entries(byID)) {
-      if (cnt>1) return msg('copyTeleportDup', {n: cnt, id: IDLabels[tid]??tid});
-      if (Object.values(nodes).some(nd=>nd.type==='teleportExit'&&(nd.params.teleportID??0)==tid))
-        return msg('copyTeleportExists', {id: IDLabels[tid]??tid});
-    }
+  if (exitNids.length && _resolveTeleportExitIds(exitNids) === null) {
+    return msg('copyTeleportNoRoom', {n: exitNids.length, free: 8 - _usedTeleportIds().size});
   }
   // 4. Launch Object: per-launchLimit counts
   const launchNids = nids.filter(nid=>nodes[nid].type==='launchObject');
@@ -8774,9 +9092,12 @@ function doMultiDupe(anchorNid) {
   if (dupeErr) { setStatus(dupeErr); cancelMultiDupe(); return; }
   saveHistory(); // snapshot after all validation, before placing
   // Place copies
+  const exitNidsForCopy = nids.filter(nid => nodes[nid].type === 'teleportExit');
+  const teleportIdAssignment = exitNidsForCopy.length ? _resolveTeleportExitIds(exitNidsForCopy) : null;
   nids.forEach(nid => {
     const dst = nidMap.get(nid);
     nodes[dst].type=nodes[nid].type; nodes[dst].params={...nodes[nid].params}; nodes[dst].comment=nodes[nid].comment;
+    if (teleportIdAssignment?.has(nid)) nodes[dst].params.teleportID = teleportIdAssignment.get(nid);
     refreshSquareVisual(dst);
   });
   // Only touch connections that are themselves part of the selection — either explicitly
@@ -8934,7 +9255,11 @@ function _updateNbMatchHint() {
 // Apply a nodon type key to the currently selected cell (called by browser buttons and Enter).
 function _applyNodonTypeKey(typeKey) {
   if (!sel) return;
-  const err = checkPlacementAllowed(typeKey, sel, null);
+  let teleportIdHint = null;
+  if (typeKey === 'teleportExit') {
+    teleportIdHint = _resolveTeleportExitIds([sel])?.get(sel) ?? null;
+  }
+  const err = checkPlacementAllowed(typeKey, sel, teleportIdHint !== null ? {teleportID: teleportIdHint} : null);
   if (err) { setStatus(err); return; }
   if (typeKey === 'gameScreen') {
     const [sc, sr] = sel.split(',').map(Number);
@@ -8953,6 +9278,7 @@ function _applyNodonTypeKey(typeKey) {
     NODON_TYPES[typeKey].params.forEach(p => {
       np[p.key] = existing.hasOwnProperty(p.key) ? existing[p.key] : p.df;
     });
+    if (typeKey === 'teleportExit' && teleportIdHint !== null) np.teleportID = teleportIdHint;
     nodes[sel].params = np;
   } else {
     nodes[sel].params = {};
@@ -9187,8 +9513,6 @@ function renderNodonBrowser(nid) {
       btn.textContent = td.name;
       btn.title = td.abbr;
       btn.addEventListener('click', () => {
-        const err = checkPlacementAllowed(key, nid, null);
-        if (err) { setStatus(err); return; }
         _applyNodonTypeKey(key);
       });
       grid.appendChild(btn);
@@ -10131,6 +10455,51 @@ function isHigh(v) {
       || v < -SIM_THRESHOLD;
 }
 
+// Converts an Angle Sensor's configured Rotation X/Y/Z (degrees) into "Actual" X/Y/Z
+// (degrees) via a quaternion round-trip. All math in float32, matching the rest of the
+// simulator. A mathematically undefined 0/0 ratio (w and the numerator both 0) becomes 0.
+// Used both by the Build-mode derived-info display and the Angle Sensor's Simulate Mode
+// output itself (see the 'angleSensor' case in runOneTick).
+function _computeActualAngles(rotXDeg, rotYDeg, rotZDeg) {
+  const D2R = F(Math.PI / 180);
+  const hx = F(F(rotXDeg * D2R) / 2), hy = F(F(rotYDeg * D2R) / 2), hz = F(F(rotZDeg * D2R) / 2);
+  const cx = F(Math.cos(hx)), sx = F(Math.sin(hx));
+  const cy = F(Math.cos(hy)), sy = F(Math.sin(hy));
+  const cz = F(Math.cos(hz)), sz = F(Math.sin(hz));
+  const w = F(F(F(cx*cy)*cz) + F(F(sx*sy)*sz));
+  const x = F(F(F(sx*cy)*cz) - F(F(cx*sy)*sz));
+  const y = F(F(F(cx*sy)*cz) + F(F(sx*cy)*sz));
+  const z = F(F(F(cx*cy)*sz) - F(F(sx*sy)*cz));
+  const R2D = F(180 / Math.PI);
+  const toDeg = (num) => {
+    let ratio = F(num / w);
+    if (ratio !== ratio) ratio = F(0); // 0/0 → NaN → undefined → 0, per spec
+    return F(F(2 * F(Math.atan(ratio))) * R2D);
+  };
+  return { x: toDeg(x), y: toDeg(y), z: toDeg(z) };
+}
+
+// Digitize Nodon's quantization, reproducing the original game's int32-saturation bug
+// exactly (see the pseudocode this was translated from). x must already be a valid
+// (non-NaN/non-Infinite) float32 value — the caller is responsible for that, same
+// convention as the rest of the simulator (see _isSpecial below).
+function _digitizeQuantize(x, stages) {
+  const scale = F(stages - 1); // X-1 computed as integer first, then cast to float32
+  const y = F(x);
+  const product = F(y * scale);
+  const sign = product >= 0 ? F(1.0) : F(-1.0);
+  const absVal = F(Math.abs(product));
+  const roundedAbs = Math.floor(F(absVal + F(0.5))); // floor of a float32 value
+  const rounded = F(sign * roundedAbs);
+  const INT32_MIN = -2147483648, INT32_MAX = 2147483647;
+  let intVal;
+  if (rounded > INT32_MAX) intVal = INT32_MAX;
+  else if (rounded < INT32_MIN) intVal = INT32_MIN;
+  else intVal = rounded; // already integral post-floor
+  const clampedF32 = F(intVal); // e.g. F(2147483647) rounds UP to 2147483648 — intentional
+  return F(clampedF32 / scale);
+}
+
 // Helpers for special float32 values
 const _isNaN = v => v !== v;
 const _isInf = v => v === Infinity || v === -Infinity;
@@ -11071,28 +11440,16 @@ function runOneTick() {
         break;
 
       case 'digitize': {
-        // Quantize input to (stages) evenly-spaced levels. scale = stages − 1.
-        // All arithmetic in IEEE-754 float32 per spec.
+        // Quantize input to (stages) evenly-spaced levels, reproducing the original
+        // game's int32-saturation bug exactly — see _digitizeQuantize. NaN maps to 0
+        // (mathematically undefined); ±Infinity is NOT special-cased here — it flows
+        // into the quantize pipeline itself, which correctly saturates it to
+        // INT32_MAX/INT32_MIN just like any other overflowing finite input would.
         const x     = _simInput(nid, 0);
         const scale = F((nd.params.stages ?? 2) - 1);
         if (scale <= F(0)) { curr[`${nid}:0`] = F(x); break; }
-
-        // Special-value handling
         if (_isNaN(x)) { curr[`${nid}:0`] = F(0); break; }
-        if (_isInf(x)) {
-          // Max representable output = floor(2^31 / scale), sign matches input
-          const maxOut = F(Math.floor(2147483648 / scale));
-          curr[`${nid}:0`] = F(x > 0 ? maxOut : -maxOut);
-          break;
-        }
-
-        let y = F(x);
-        y = F(y * scale);
-        const absY = F(Math.abs(y));
-        const half = F(absY + F(0.5));
-        const fl   = F(Math.floor(half));
-        y = F(fl * (y < F(0) ? F(-1) : F(1)));
-        curr[`${nid}:0`] = F(y / scale);
+        curr[`${nid}:0`] = _digitizeQuantize(x, nd.params.stages ?? 2);
         break;
       }
 
@@ -11306,10 +11663,12 @@ function runOneTick() {
       }
 
       case 'angleSensor': {
-        // Outputs the configured X/Y/Z rotation (0 = no change, still outputs 0)
-        curr[`${nid}:0`] = F(nd.params.rotX ?? 0);
-        curr[`${nid}:1`] = F(nd.params.rotY ?? 0);
-        curr[`${nid}:2`] = F(nd.params.rotZ ?? 0);
+        // Outputs the "Actual" X/Y/Z angle (quaternion round-trip of the configured
+        // Rotation X/Y/Z), not the raw configured values — see _computeActualAngles.
+        const actual = _computeActualAngles(nd.params.rotX ?? 0, nd.params.rotY ?? 0, nd.params.rotZ ?? 0);
+        curr[`${nid}:0`] = actual.x;
+        curr[`${nid}:1`] = actual.y;
+        curr[`${nid}:2`] = actual.z;
         break;
       }
 
@@ -12155,7 +12514,7 @@ function updateSimSidebar() {
       setRows += _ssbR('Output after',
         dF === 0 ? (currentLang === 'ja' ? '0フレーム（即時 — 次のティック）' : '0 frames (immediate — next tick)') : (currentLang === 'ja' ? `${dF}フレーム` : `${dF} frame${dF !== 1 ? 's' : ''}`));
       setRows += _ssbR('Continue for',
-        uF === 0 ? (currentLang === 'ja' ? '0フレーム（1フレーム；スキャン中）' : '0 frames (1 frame; scanning during)') : (currentLang === 'ja' ? `${uF}フレーム` : `${uF} frame${uF !== 1 ? 's' : ''}`));
+        uF === 0 ? (currentLang === 'ja' ? '0フレーム（1フレーム、スキャン中）' : '0 frames (1 frame; scanning during)') : (currentLang === 'ja' ? `${uF}フレーム` : `${uF} frame${uF !== 1 ? 's' : ''}`));
       break;
     }
   }
@@ -13002,7 +13361,7 @@ if (document.body.classList.contains('is-touch')) {
         // (selecting it would add 'selected' class → sqpulse glow + action buttons during drag)
         mobClose();
         deselectWire();
-        if (sel) { const old = sel; sel = null; refreshSquareVisual(old); }
+        if (sel) { const old = sel; sel = null; refreshSquareVisual(old); redraw(); }
         const _nm = NODON_TYPES[nodes[dragMove.nid]?.type]?.name || 'Nodon';
         setStatus(msg('dragMoveOneTouch', {name: _nm}), true);
       }
